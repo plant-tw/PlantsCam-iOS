@@ -273,7 +273,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = URYNPG7RQE;
+				DEVELOPMENT_TEAM = 249RY7L79K;
 				INFOPLIST_FILE = ARSampleApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.droidsonroids.ARSampleApp;
@@ -287,7 +287,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = URYNPG7RQE;
+				DEVELOPMENT_TEAM = 249RY7L79K;
 				INFOPLIST_FILE = ARSampleApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.droidsonroids.ARSampleApp;
@@ -316,6 +316,7 @@
 				E5D125E61F17672200F95BA0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

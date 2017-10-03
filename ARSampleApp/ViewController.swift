@@ -111,30 +111,39 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         resetValues()
         measuring = true
-        UIImageWriteToSavedPhotosAlbum(sceneView.snapshot(), nil, nil, nil)
 
+        // Prepare image
+        let imgData = UIImageJPEGRepresentation(sceneView.snapshot(), 1)
+
+        // Prepare metadata
         let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter)}"]
         let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
 
-        let imgData = UIImageJPEGRepresentation(sceneView.snapshot(), 1)
-        let source = CGImageSourceCreateWithData(imgData! as CFData, nil)
+        // Prepare file name to save
         let docDir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
-        let tmpURLString = docDir.appending("/qq.jpg")
+        let randomStr = self.randomStringWithLength(len: 8)
+        let tmpURLString = docDir.appending("/"+randomStr+".jpg")
+
+        // Save image to file
         let tmpURL = URL(fileURLWithPath: tmpURLString)
         let destination = CGImageDestinationCreateWithURL(tmpURL as CFURL, kUTTypeJPEG, 1, nil)
+        let source = CGImageSourceCreateWithData(imgData! as CFData, nil)
         CGImageDestinationAddImageFromSource(destination!, source!, 0, metadata as CFDictionary)
         CGImageDestinationFinalize(destination!)
-//        CFRelease(source!)
-//        CFRelease(destination!)
-//        PHPhotoLibrary.shared().performChanges({
-//            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: tmpURL)
-//        }) { (success, error) in
-//            print(success)
-//        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         measuring = false
     }
     
+    func randomStringWithLength(len: NSInteger) -> String {
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        var str = ""
+        for _ in 0...len {
+            let cidx = Int(arc4random_uniform(UInt32(letters.count)))
+            let charIndex = letters.index(letters.startIndex, offsetBy: cidx)
+            str.append(letters[charIndex])
+        }
+        return str
+    }
 }

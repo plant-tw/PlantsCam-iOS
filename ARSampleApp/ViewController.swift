@@ -32,6 +32,18 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         super.viewDidLoad()
         
         setupScene()
+
+        let cameraButton = UIButton(type: .custom)
+        cameraButton.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(cameraButton)
+        NSLayoutConstraint.activate([
+            cameraButton.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10.0),
+            cameraButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            cameraButton.widthAnchor.constraint(equalToConstant: 160.0),
+            cameraButton.heightAnchor.constraint(equalToConstant: 160.0)
+            ])
+        cameraButton.setImage(UIImage(named: "circle-160"), for: .normal)
+        cameraButton.addTarget(self, action: #selector(takePhoto), for: .touchUpInside)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -111,7 +123,9 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         resetValues()
         measuring = true
+    }
 
+    @objc func takePhoto() {
         // Prepare image
         let imgData = UIImageJPEGRepresentation(sceneView.snapshot(), 1)
 

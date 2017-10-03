@@ -9,6 +9,8 @@
 import UIKit
 import SceneKit
 import ARKit
+//import Photos
+import MobileCoreServices
 
 final class ViewController: UIViewController, ARSCNViewDelegate {
 
@@ -23,6 +25,8 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     var measuring = false
     var startValue = SCNVector3()
     var endValue = SCNVector3()
+    var lengthInPixel : Float = 0.0
+    var lengthInCentiMeter : Float = 0.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,8 +87,10 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         if let startWorldVector = sceneView.realWorldVector(screenPos: startFrameValue),
             let endWorldVector = sceneView.realWorldVector(screenPos: endFrameValue) {
             let lengthInMeter = startWorldVector.distance(from: endWorldVector)
-            print("pixel: \(lengthInPixel)")
-            print("centimeter: \(lengthInMeter * 100)")
+            self.lengthInPixel = lengthInPixel
+            self.lengthInCentiMeter = lengthInMeter * 100
+            print("pixel: \(self.lengthInPixel)")
+            print("centimeter: \(self.lengthInCentiMeter)")
             print("\n")
         }
 
@@ -106,6 +112,25 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         resetValues()
         measuring = true
         UIImageWriteToSavedPhotosAlbum(sceneView.snapshot(), nil, nil, nil)
+
+        let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter)}"]
+        let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
+
+        let imgData = UIImageJPEGRepresentation(sceneView.snapshot(), 1)
+        let source = CGImageSourceCreateWithData(imgData! as CFData, nil)
+        let docDir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
+        let tmpURLString = docDir.appending("/qq.jpg")
+        let tmpURL = URL(fileURLWithPath: tmpURLString)
+        let destination = CGImageDestinationCreateWithURL(tmpURL as CFURL, kUTTypeJPEG, 1, nil)
+        CGImageDestinationAddImageFromSource(destination!, source!, 0, metadata as CFDictionary)
+        CGImageDestinationFinalize(destination!)
+//        CFRelease(source!)
+//        CFRelease(destination!)
+//        PHPhotoLibrary.shared().performChanges({
+//            PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: tmpURL)
+//        }) { (success, error) in
+//            print(success)
+//        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {

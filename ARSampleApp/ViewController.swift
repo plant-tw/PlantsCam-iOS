@@ -126,24 +126,35 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     }
 
     @objc func takePhoto() {
-        // Prepare image
-        let imgData = UIImageJPEGRepresentation(sceneView.snapshot(), 1)
+        let alertController = UIAlertController(title: nil, message: "Input plant name", preferredStyle: .alert)
+        alertController.addTextField { (textField) in
+            textField.placeholder = "plant name"
+        }
+        let confirmAction = UIAlertAction(title: "Confirm", style: .default) { (alertAction) in
+            // Prepare image
+            let imgData = UIImageJPEGRepresentation(self.sceneView.snapshot(), 1)
 
-        // Prepare metadata
-        let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter)}"]
-        let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
+            // Prepare metadata
+            let plantName = alertController.textFields?.first?.text ?? ""
+            let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter), \"plantName\": \(plantName)}"]
+            let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
 
-        // Prepare file name to save
-        let docDir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
-        let randomStr = self.randomStringWithLength(len: 8)
-        let tmpURLString = docDir.appending("/"+randomStr+".jpg")
+            // Prepare file name to save
+            let docDir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
+            let randomStr = self.randomStringWithLength(len: 8)
+            let tmpURLString = docDir.appending("/"+randomStr+".jpg")
 
-        // Save image to file
-        let tmpURL = URL(fileURLWithPath: tmpURLString)
-        let destination = CGImageDestinationCreateWithURL(tmpURL as CFURL, kUTTypeJPEG, 1, nil)
-        let source = CGImageSourceCreateWithData(imgData! as CFData, nil)
-        CGImageDestinationAddImageFromSource(destination!, source!, 0, metadata as CFDictionary)
-        CGImageDestinationFinalize(destination!)
+            // Save image to file
+            let tmpURL = URL(fileURLWithPath: tmpURLString)
+            let destination = CGImageDestinationCreateWithURL(tmpURL as CFURL, kUTTypeJPEG, 1, nil)
+            let source = CGImageSourceCreateWithData(imgData! as CFData, nil)
+            CGImageDestinationAddImageFromSource(destination!, source!, 0, metadata as CFDictionary)
+            CGImageDestinationFinalize(destination!)
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(confirmAction)
+        alertController.addAction(cancelAction)
+        self.present(alertController, animated: true, completion: nil)
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {

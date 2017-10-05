@@ -137,7 +137,15 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
 
             // Prepare metadata
             let plantName = alertController.textFields?.first?.text ?? ""
-            let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter), \"plantName\": \"\(plantName)}\""]
+            let exifUserComment = ExifUserComment(lengthInPixel: self.lengthInPixel, lengthInCentiMeter: self.lengthInCentiMeter, plantName: plantName)
+            // Create a String from the data
+            let jsonEncoder = JSONEncoder()
+            var exifUserCommentString = ""
+            if let jsonData = try? jsonEncoder.encode(exifUserComment),
+                let jsonString = String(data: jsonData, encoding: .utf8) {
+                exifUserCommentString = jsonString
+            }
+            let exif = [kCGImagePropertyExifUserComment: exifUserCommentString]
             let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
 
             // Prepare file name to save

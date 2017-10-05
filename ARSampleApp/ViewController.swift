@@ -37,8 +37,8 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         cameraButton.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cameraButton)
         NSLayoutConstraint.activate([
-            cameraButton.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10.0),
-            cameraButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            cameraButton.bottomAnchor.constraint(equalTo: self.sceneView.bottomAnchor, constant: -10.0),
+            cameraButton.centerXAnchor.constraint(equalTo: self.sceneView.centerXAnchor),
             cameraButton.widthAnchor.constraint(equalToConstant: 160.0),
             cameraButton.heightAnchor.constraint(equalToConstant: 160.0)
             ])
@@ -126,17 +126,18 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     }
 
     @objc func takePhoto() {
+        // Prepare image
+        let imgData = UIImageJPEGRepresentation(self.sceneView.snapshot(), 1)
+
         let alertController = UIAlertController(title: nil, message: "Input plant name", preferredStyle: .alert)
         alertController.addTextField { (textField) in
             textField.placeholder = "plant name"
         }
         let confirmAction = UIAlertAction(title: "Confirm", style: .default) { (alertAction) in
-            // Prepare image
-            let imgData = UIImageJPEGRepresentation(self.sceneView.snapshot(), 1)
 
             // Prepare metadata
             let plantName = alertController.textFields?.first?.text ?? ""
-            let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter), \"plantName\": \(plantName)}"]
+            let exif = [kCGImagePropertyExifUserComment: "{\"lengthInPixel\": \(self.lengthInPixel), \"lengthInCentiMeter\": \(self.lengthInCentiMeter), \"plantName\": \"\(plantName)}\""]
             let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
 
             // Prepare file name to save

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.19" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.16"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13173"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -25,7 +24,7 @@
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </arscnView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Not ready yet" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BTF-GO-fDd">
-                                <rect key="frame" x="107" y="323" width="159" height="21"/>
+                                <rect key="frame" x="108" y="323" width="159" height="21"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="159" id="ek5-lJ-Ks0"/>
                                 </constraints>
@@ -60,11 +59,11 @@
                             <constraint firstAttribute="trailing" secondItem="C5j-cb-jD1" secondAttribute="trailing" id="8fP-uK-qgh"/>
                             <constraint firstItem="B1S-9c-eIb" firstAttribute="top" secondItem="NhK-aZ-LVB" secondAttribute="bottom" constant="-20" id="A9M-4j-jAw"/>
                             <constraint firstItem="C5j-cb-jD1" firstAttribute="leading" secondItem="Dl3-5U-Hx3" secondAttribute="leading" id="GIr-3v-YQ7"/>
+                            <constraint firstItem="vwK-F7-3Qx" firstAttribute="centerY" secondItem="C5j-cb-jD1" secondAttribute="centerY" id="T4P-tV-4zE"/>
+                            <constraint firstItem="vwK-F7-3Qx" firstAttribute="centerX" secondItem="C5j-cb-jD1" secondAttribute="centerX" id="TZE-Vb-SZN"/>
                             <constraint firstItem="C5j-cb-jD1" firstAttribute="top" secondItem="Dl3-5U-Hx3" secondAttribute="top" id="X74-OJ-npN"/>
-                            <constraint firstItem="BTF-GO-fDd" firstAttribute="baseline" secondItem="vwK-F7-3Qx" secondAttribute="baseline" id="XdB-PP-5xe"/>
-                            <constraint firstItem="BTF-GO-fDd" firstAttribute="centerX" secondItem="vwK-F7-3Qx" secondAttribute="centerX" id="d06-WL-HVA"/>
+                            <constraint firstItem="BTF-GO-fDd" firstAttribute="centerX" secondItem="C5j-cb-jD1" secondAttribute="centerX" id="d06-WL-HVA"/>
                             <constraint firstItem="BTF-GO-fDd" firstAttribute="centerY" secondItem="C5j-cb-jD1" secondAttribute="centerY" id="eLT-Us-3kW"/>
-                            <constraint firstItem="BTF-GO-fDd" firstAttribute="leading" secondItem="Dl3-5U-Hx3" secondAttribute="leadingMargin" constant="91" id="tHG-u4-p7k"/>
                             <constraint firstItem="VZu-n6-siP" firstAttribute="top" secondItem="C5j-cb-jD1" secondAttribute="bottom" id="wkm-4C-ELl"/>
                         </constraints>
                     </view>

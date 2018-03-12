@@ -1,7 +1,5 @@
-# MeasureARKit
-An example of measuring with ARKit in iOS 11
+# PlantsCam-iOS
 
-Here's an example of simple app measuring real-world things with ARKit in iOS11. 
-Tutorial is available on our blog here: https://www.thedroidsonroids.com/blog/how-to-create-a-measuring-app-with-arkit-in-ios-11
+Use this app to collect image, with related sensor information stored in `UserComment` field of Exif data.
 
-<img src="https://www.thedroidsonroids.com/wp-content/uploads/2017/07/measuring_ios_5.gif" alt="Example of usage" style="float: left;">
+Take out images with iTunes File Sharing.

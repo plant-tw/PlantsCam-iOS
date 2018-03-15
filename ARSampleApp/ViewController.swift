@@ -7,35 +7,43 @@
 //
 
 import UIKit
-import SceneKit
 import ARKit
-//import Photos
+import SceneKit
+
 import MobileCoreServices
 import CoreMotion
 
-final class ViewController: UIViewController, ARSCNViewDelegate {
+final class ViewController: UIViewController {
 
     @IBOutlet weak var resultLabel: UILabel!
     @IBOutlet weak var aimLabel: UILabel!
     @IBOutlet weak var notReadyLabel: UILabel!
     @IBOutlet var sceneView: ARSCNView!
     
-    let session = ARSession()
-    let vectorZero = SCNVector3()
-    let sessionConfig = ARWorldTrackingConfiguration()
-    var measuring = false
-    var startValue = SCNVector3()
-    var endValue = SCNVector3()
-    var lengthInPixel : Float? = nil
-    var lengthInCentiMeter : Float? = nil
+    private let session = ARSession()
+    private let vectorZero = SCNVector3()
+    private let sessionConfig = ARWorldTrackingConfiguration()
+    private var measuring = false
+    private var startValue = SCNVector3()
+    private var endValue = SCNVector3()
+
+    private var lengthInPixel : Float? = nil
+    private var lengthInCentiMeter : Float? = nil
 
     private let motionManager = CMMotionManager()
-    
+
+    // MARK: - View Controller Life Cycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupScene()
+        // Setup scene
+        sceneView.delegate = self
+        sceneView.session = session
+        session.run(sessionConfig, options: [.resetTracking, .removeExistingAnchors])
+        resetValues()
 
+        // Camera button
         let cameraButton = UIButton(type: .custom)
         cameraButton.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cameraButton)
@@ -48,12 +56,12 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         cameraButton.setImage(UIImage(named: "circle-160"), for: .normal)
         cameraButton.addTarget(self, action: #selector(takePhoto), for: .touchUpInside)
 
+        // Device motion manager
         motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         UIApplication.shared.isIdleTimerDisabled = true
     }
     
@@ -61,73 +69,10 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         super.viewWillDisappear(animated)
         session.pause()
     }
-    
-    func setupScene() {
-        sceneView.delegate = self
-        sceneView.session = session
-        
-        session.run(sessionConfig, options: [.resetTracking, .removeExistingAnchors])
-        
-        resetValues()
-    }
-    
-    func resetValues() {
-        measuring = false
-        startValue = SCNVector3()
-        endValue =  SCNVector3()
-        
-        updateResultLabel(0.0)
-    }
-    
-    func updateResultLabel(_ value: Float) {
-        let cm = value * 100.0
-        let inch = cm*0.3937007874
-        resultLabel.text = String(format: "%.2f cm / %.2f\"", cm, inch)
-    }
-    
-    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        DispatchQueue.main.async {
-            self.detectObjects()
-        }
-    }
-    
-    func detectObjects() {
-        // Calculating pixel
-        let startFrameValue = view.center
-        let endFrameValue = CGPoint(x: view.center.x + 100, y: view.center.y)
-        let deltaX = Float(endFrameValue.x - startFrameValue.x)
-        let deltaY = Float(endFrameValue.y - startFrameValue.y)
-        let lengthInPoint = sqrtf(deltaX * deltaX + deltaY * deltaY)          // in point
-        let lengthInPixel = lengthInPoint * Float(UIScreen.main.scale)        // in pixel
 
-        // Calculating length
-        if let startWorldVector = sceneView.realWorldVector(screenPos: startFrameValue),
-            let endWorldVector = sceneView.realWorldVector(screenPos: endFrameValue) {
-            let lengthInMeter = startWorldVector.distance(from: endWorldVector)
-            self.lengthInPixel = lengthInPixel
-            self.lengthInCentiMeter = lengthInMeter * 100
-        }
+    // MARK: - Button action
 
-        if let worldPos = sceneView.realWorldVector(screenPos: view.center) {
-            aimLabel.isHidden = false
-            notReadyLabel.isHidden = true
-            if measuring {
-                if startValue == vectorZero {
-                    startValue = worldPos
-                }
-                
-                endValue = worldPos
-                updateResultLabel(startValue.distance(from: endValue))
-            }
-        }
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        resetValues()
-        measuring = true
-    }
-
-    @objc func takePhoto() {
+    @objc private func takePhoto() {
         // Prepare image
         let imgData = UIImageJPEGRepresentation(self.sceneView.snapshot(), 1)
         // Input plant name
@@ -182,12 +127,8 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
         alertController.addAction(cancelAction)
         self.present(alertController, animated: true, completion: nil)
     }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        measuring = false
-    }
-    
-    func randomStringWithLength(len: NSInteger) -> String {
+
+    private func randomStringWithLength(len: NSInteger) -> String {
         let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var str = ""
         for _ in 0...len {
@@ -196,5 +137,72 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
             str.append(letters[charIndex])
         }
         return str
+    }
+}
+
+// MARK: - Touch and hold to measure length
+
+extension ViewController {
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        resetValues()
+        measuring = true
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        measuring = false
+    }
+
+    private func resetValues() {
+        measuring = false
+        startValue = SCNVector3()
+        endValue =  SCNVector3()
+        updateResultLabel(0.0)
+    }
+
+    private func updateResultLabel(_ value: Float) {
+        let cm = value * 100.0
+        let inch = cm * 0.3937007874
+        resultLabel.text = String(format: "%.2f cm / %.2f\"", cm, inch)
+    }
+}
+
+// MARK: - ARSCNViewDelegate
+
+extension ViewController : ARSCNViewDelegate {
+
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        DispatchQueue.main.async {
+            self.detectObjects()
+        }
+    }
+
+    private func detectObjects() {
+        // Calculating pixel
+        let startFrameValue = view.center
+        let endFrameValue = CGPoint(x: view.center.x + 100, y: view.center.y)
+        let deltaX = Float(endFrameValue.x - startFrameValue.x)
+        let deltaY = Float(endFrameValue.y - startFrameValue.y)
+        let lengthInPoint = sqrtf(deltaX * deltaX + deltaY * deltaY)          // in point
+        let lengthInPixel = lengthInPoint * Float(UIScreen.main.scale)        // in pixel
+
+        // Calculating length
+        if let startWorldVector = sceneView.realWorldVector(screenPos: startFrameValue),
+            let endWorldVector = sceneView.realWorldVector(screenPos: endFrameValue) {
+            let lengthInMeter = startWorldVector.distance(from: endWorldVector)
+            self.lengthInPixel = lengthInPixel
+            self.lengthInCentiMeter = lengthInMeter * 100
+        }
+        if let worldPos = sceneView.realWorldVector(screenPos: view.center) {
+            aimLabel.isHidden = false
+            notReadyLabel.isHidden = true
+            if measuring {
+                if startValue == vectorZero {
+                    startValue = worldPos
+                }
+                endValue = worldPos
+                updateResultLabel(startValue.distance(from: endValue))
+            }
+        }
     }
 }

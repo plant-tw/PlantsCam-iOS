@@ -10,5 +10,10 @@ struct ExifUserComment : Codable {
 
     let lengthInPixel : Float
     let lengthInCentiMeter : Float
+
+    let roll : Double
+    let pitch : Double
+    let yaw : Double
+
     let plantName : String
 }

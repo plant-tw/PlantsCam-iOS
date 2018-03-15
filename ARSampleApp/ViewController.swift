@@ -11,6 +11,7 @@ import SceneKit
 import ARKit
 //import Photos
 import MobileCoreServices
+import CoreMotion
 
 final class ViewController: UIViewController, ARSCNViewDelegate {
 
@@ -25,8 +26,10 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     var measuring = false
     var startValue = SCNVector3()
     var endValue = SCNVector3()
-    var lengthInPixel : Float = 0.0
-    var lengthInCentiMeter : Float = 0.0
+    var lengthInPixel : Float? = nil
+    var lengthInCentiMeter : Float? = nil
+
+    private let motionManager = CMMotionManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,6 +47,8 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
             ])
         cameraButton.setImage(UIImage(named: "circle-160"), for: .normal)
         cameraButton.addTarget(self, action: #selector(takePhoto), for: .touchUpInside)
+
+        motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -101,9 +106,6 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
             let lengthInMeter = startWorldVector.distance(from: endWorldVector)
             self.lengthInPixel = lengthInPixel
             self.lengthInCentiMeter = lengthInMeter * 100
-            print("pixel: \(self.lengthInPixel)")
-            print("centimeter: \(self.lengthInCentiMeter)")
-            print("\n")
         }
 
         if let worldPos = sceneView.realWorldVector(screenPos: view.center) {
@@ -128,17 +130,32 @@ final class ViewController: UIViewController, ARSCNViewDelegate {
     @objc func takePhoto() {
         // Prepare image
         let imgData = UIImageJPEGRepresentation(self.sceneView.snapshot(), 1)
-
+        // Input plant name
         let alertController = UIAlertController(title: nil, message: "Input plant name", preferredStyle: .alert)
         alertController.addTextField { (textField) in
             textField.placeholder = "plant name"
         }
         let confirmAction = UIAlertAction(title: "Confirm", style: .default) { (alertAction) in
-
-            // Prepare metadata
+            // Prepare sensor data
+            guard let lengthInPixel = self.lengthInPixel,
+                let lengthInCentiMeter = self.lengthInCentiMeter,
+                let roll = self.motionManager.deviceMotion?.attitude.roll,
+                let pitch = self.motionManager.deviceMotion?.attitude.pitch,
+                let yaw = self.motionManager.deviceMotion?.attitude.yaw else {
+                    let alertController = UIAlertController(title: nil, message: "sensor data not ready", preferredStyle: .alert)
+                    let confirmAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alertController.addAction(confirmAction)
+                    self.present(alertController, animated: true, completion: nil)
+                    return
+            }
             let plantName = alertController.textFields?.first?.text ?? ""
-            let exifUserComment = ExifUserComment(lengthInPixel: self.lengthInPixel, lengthInCentiMeter: self.lengthInCentiMeter, plantName: plantName)
-            // Create a String from the data
+            let exifUserComment = ExifUserComment(lengthInPixel: lengthInPixel,
+                                                  lengthInCentiMeter: lengthInCentiMeter,
+                                                  roll: roll,
+                                                  pitch: pitch,
+                                                  yaw: yaw,
+                                                  plantName: plantName)
+            // Create a JSON String of the sensor data
             let jsonEncoder = JSONEncoder()
             var exifUserCommentString = ""
             if let jsonData = try? jsonEncoder.encode(exifUserComment),

@@ -37,3 +37,13 @@ extension ARSCNView {
         return nil
     }
 }
+
+extension UIAlertController {
+
+    static func ptw_alert(with msg: String) -> UIAlertController {
+        let alertController = UIAlertController(title: nil, message: msg, preferredStyle: .alert)
+        let confirmAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alertController.addAction(confirmAction)
+        return alertController
+    }
+}

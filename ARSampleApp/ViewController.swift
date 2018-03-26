@@ -32,6 +32,19 @@ final class ViewController: UIViewController {
 
     private let motionManager = CMMotionManager()
 
+    private let cameraButton = UIButton(type: .custom)
+    private var photos : [Data] = [Data]()
+    private var exifs : [ExifUserComment] = [ExifUserComment]()
+    private var recordTimer : Timer? = nil {
+        willSet {
+            if newValue == nil {
+                cameraButton.alpha = 1.0
+            } else {
+                cameraButton.alpha = 0.3
+            }
+        }
+    }
+
     // MARK: - View Controller Life Cycle
 
     override func viewDidLoad() {
@@ -44,7 +57,6 @@ final class ViewController: UIViewController {
         resetValues()
 
         // Camera button
-        let cameraButton = UIButton(type: .custom)
         cameraButton.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cameraButton)
         NSLayoutConstraint.activate([
@@ -73,59 +85,87 @@ final class ViewController: UIViewController {
     // MARK: - Button action
 
     @objc private func takePhoto() {
-        // Prepare image
-        let imgData = UIImageJPEGRepresentation(self.sceneView.snapshot(), 1)
-        // Input plant name
-        let alertController = UIAlertController(title: nil, message: "Input plant name", preferredStyle: .alert)
-        alertController.addTextField { (textField) in
-            textField.placeholder = "plant name"
-        }
-        let confirmAction = UIAlertAction(title: "Confirm", style: .default) { (alertAction) in
-            // Prepare sensor data
-            guard let lengthInPixel = self.lengthInPixel,
-                let lengthInCentiMeter = self.lengthInCentiMeter,
-                let roll = self.motionManager.deviceMotion?.attitude.roll,
-                let pitch = self.motionManager.deviceMotion?.attitude.pitch,
-                let yaw = self.motionManager.deviceMotion?.attitude.yaw else {
-                    let alertController = UIAlertController(title: nil, message: "sensor data not ready", preferredStyle: .alert)
-                    let confirmAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertController.addAction(confirmAction)
-                    self.present(alertController, animated: true, completion: nil)
-                    return
-            }
-            let plantName = alertController.textFields?.first?.text ?? ""
-            let exifUserComment = ExifUserComment(lengthInPixel: lengthInPixel,
-                                                  lengthInCentiMeter: lengthInCentiMeter,
-                                                  roll: roll,
-                                                  pitch: pitch,
-                                                  yaw: yaw,
-                                                  plantName: plantName)
-            // Create a JSON String of the sensor data
-            let jsonEncoder = JSONEncoder()
-            var exifUserCommentString = ""
-            if let jsonData = try? jsonEncoder.encode(exifUserComment),
-                let jsonString = String(data: jsonData, encoding: .utf8) {
-                exifUserCommentString = jsonString
-            }
-            let exif = [kCGImagePropertyExifUserComment: exifUserCommentString]
-            let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
+        if recordTimer == nil {
+            recordTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true, block: { [weak self] (timer) in
+                guard let weakSelf = self,
+                    let imgData = UIImageJPEGRepresentation(weakSelf.sceneView.snapshot(), 1),
+                    let lengthInPixel = weakSelf.lengthInPixel,
+                    let lengthInCentiMeter = weakSelf.lengthInCentiMeter,
+                    let roll = weakSelf.motionManager.deviceMotion?.attitude.roll,
+                    let pitch = weakSelf.motionManager.deviceMotion?.attitude.pitch,
+                    let yaw = weakSelf.motionManager.deviceMotion?.attitude.yaw else {
+                        self?.recordTimer?.invalidate()
+                        self?.recordTimer = nil
+                        let alert = UIAlertController.ptw_alert(with: "sensor data not ready")
+                        self?.present(alert, animated: true, completion: nil)
+                        return
+                }
+                let exifUserComment = ExifUserComment(lengthInPixel: lengthInPixel,
+                                                      lengthInCentiMeter: lengthInCentiMeter,
+                                                      roll: roll,
+                                                      pitch: pitch,
+                                                      yaw: yaw)
+                weakSelf.exifs.append(exifUserComment)
+                weakSelf.photos.append(imgData)
+            })
+        } else {
+            // Stop the timer
+            recordTimer?.invalidate()
+            recordTimer = nil
 
-            // Prepare file name to save
+            // Early check
+            if photos.count != exifs.count {
+                let alert = UIAlertController.ptw_alert(with: "photos and exifs count not consistent")
+                present(alert, animated: true, completion: nil)
+                return
+            }
+
+            // Prepare a directory to save in
+            let randomStr = randomStringWithLength(len: 8)
             let docDir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
-            let randomStr = self.randomStringWithLength(len: 8)
-            let tmpURLString = docDir.appending("/"+randomStr+".jpg")
+            let directoryURLString = docDir.appending("/" + randomStr)
+            if !FileManager.default.fileExists(atPath: directoryURLString) {
+                do {
+                    try FileManager.default.createDirectory(atPath: directoryURLString, withIntermediateDirectories: false, attributes: nil)
+                } catch (let error) {
+                    let alert = UIAlertController.ptw_alert(with: error.localizedDescription)
+                    present(alert, animated: true, completion: nil)
+                    return
+                }
+            } else {
+                let alert = UIAlertController.ptw_alert(with: "Random collision! Try again.")
+                present(alert, animated: true, completion: nil)
+                return
+            }
 
-            // Save image to file
-            let tmpURL = URL(fileURLWithPath: tmpURLString)
-            let destination = CGImageDestinationCreateWithURL(tmpURL as CFURL, kUTTypeJPEG, 1, nil)
-            let source = CGImageSourceCreateWithData(imgData! as CFData, nil)
-            CGImageDestinationAddImageFromSource(destination!, source!, 0, metadata as CFDictionary)
-            CGImageDestinationFinalize(destination!)
+            // Save images with exif
+            let jsonEncoder = JSONEncoder()
+            for (index, imgData) in photos.enumerated() {
+                // Create a JSON String of the sensor data
+                var exifUserCommentString = ""
+                if let jsonData = try? jsonEncoder.encode(exifs[index]),
+                    let jsonString = String(data: jsonData, encoding: .utf8) {
+                    exifUserCommentString = jsonString
+                }
+                let exif = [kCGImagePropertyExifUserComment: exifUserCommentString]
+                let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
+
+                // Save images as files in the directory
+                let fileURLString = directoryURLString + "/" + "\(randomStr)_\(index).jpg"
+                let pathURL = URL(fileURLWithPath: fileURLString)
+                guard let destination = CGImageDestinationCreateWithURL(pathURL as CFURL, kUTTypeJPEG, 1, nil),
+                    let source = CGImageSourceCreateWithData(imgData as CFData, nil) else {
+                        let alert = UIAlertController.ptw_alert(with: "Error occurs when preparing destination or source")
+                        present(alert, animated: true, completion: nil)
+                        return
+                }
+                CGImageDestinationAddImageFromSource(destination, source, 0, metadata as CFDictionary)
+                CGImageDestinationFinalize(destination)
+            }
+            // Ending and removing
+            photos.removeAll()
+            exifs.removeAll()
         }
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-        alertController.addAction(confirmAction)
-        alertController.addAction(cancelAction)
-        self.present(alertController, animated: true, completion: nil)
     }
 
     private func randomStringWithLength(len: NSInteger) -> String {

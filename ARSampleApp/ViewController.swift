@@ -121,9 +121,14 @@ final class ViewController: UIViewController {
             }
 
             // Prepare a directory to save in
-            let randomStr = randomStringWithLength(len: 8)
+            let currentTime = Date()
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "hhmm"
+            let timeStr = dateFormatter.string(from: currentTime)
+            let randomStr = randomStringWithLength(len: 5)
+            let directoryName = timeStr + randomStr
             let docDir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
-            let directoryURLString = docDir.appending("/" + randomStr)
+            let directoryURLString = docDir.appending("/" + directoryName)
             if !FileManager.default.fileExists(atPath: directoryURLString) {
                 do {
                     try FileManager.default.createDirectory(atPath: directoryURLString, withIntermediateDirectories: false, attributes: nil)
@@ -151,7 +156,7 @@ final class ViewController: UIViewController {
                 let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
 
                 // Save images as files in the directory
-                let fileURLString = directoryURLString + "/" + "\(randomStr)_\(index).jpg"
+                let fileURLString = directoryURLString + "/" + "\(directoryName)_\(index).jpg"
                 let pathURL = URL(fileURLWithPath: fileURLString)
                 guard let destination = CGImageDestinationCreateWithURL(pathURL as CFURL, kUTTypeJPEG, 1, nil),
                     let source = CGImageSourceCreateWithData(imgData as CFData, nil) else {
@@ -169,9 +174,9 @@ final class ViewController: UIViewController {
     }
 
     private func randomStringWithLength(len: NSInteger) -> String {
-        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         var str = ""
-        for _ in 0...len {
+        for _ in 1...len {
             let cidx = Int(arc4random_uniform(UInt32(letters.count)))
             let charIndex = letters.index(letters.startIndex, offsetBy: cidx)
             str.append(letters[charIndex])

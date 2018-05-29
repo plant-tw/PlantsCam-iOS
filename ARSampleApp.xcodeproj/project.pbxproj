@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		047B59411F862A5F005597CC /* ExifUserComment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047B59401F862A5F005597CC /* ExifUserComment.swift */; };
+		04F5965D20BCB3FC00CC4E50 /* Plant.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 04F5965C20BCB3FC00CC4E50 /* Plant.mlmodel */; };
 		E5D125D41F17672200F95BA0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D125D31F17672200F95BA0 /* AppDelegate.swift */; };
 		E5D125D81F17672200F95BA0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D125D71F17672200F95BA0 /* ViewController.swift */; };
 		E5D125DB1F17672200F95BA0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5D125D91F17672200F95BA0 /* Main.storyboard */; };
@@ -18,6 +19,7 @@
 
 /* Begin PBXFileReference section */
 		047B59401F862A5F005597CC /* ExifUserComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExifUserComment.swift; sourceTree = "<group>"; };
+		04F5965C20BCB3FC00CC4E50 /* Plant.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = Plant.mlmodel; path = ../../../../Desktop/Plant.mlmodel; sourceTree = "<group>"; };
 		E5D125D01F17672200F95BA0 /* ARSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5D125D31F17672200F95BA0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E5D125D71F17672200F95BA0 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 				E5D125D71F17672200F95BA0 /* ViewController.swift */,
 				047B59401F862A5F005597CC /* ExifUserComment.swift */,
 				E5D125E71F17676B00F95BA0 /* Extensions.swift */,
+				04F5965C20BCB3FC00CC4E50 /* Plant.mlmodel */,
 				E5D125D91F17672200F95BA0 /* Main.storyboard */,
 				E5D125DC1F17672200F95BA0 /* Assets.xcassets */,
 				E5D125DE1F17672200F95BA0 /* LaunchScreen.storyboard */,
@@ -141,6 +144,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04F5965D20BCB3FC00CC4E50 /* Plant.mlmodel in Sources */,
 				E5D125D81F17672200F95BA0 /* ViewController.swift in Sources */,
 				047B59411F862A5F005597CC /* ExifUserComment.swift in Sources */,
 				E5D125E81F17676B00F95BA0 /* Extensions.swift in Sources */,

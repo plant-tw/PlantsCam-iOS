@@ -9,6 +9,7 @@
 import UIKit
 import ARKit
 import SceneKit
+import Vision
 
 import MobileCoreServices
 import CoreMotion
@@ -45,6 +46,29 @@ final class ViewController: UIViewController {
         }
     }
 
+    // Vision classification request and model
+    /// - Tag: ClassificationRequest
+    private lazy var classificationRequest: VNCoreMLRequest = {
+        do {
+            // Instantiate the model from its generated Swift class.
+            let model = try VNCoreMLModel(for: Plant().model)
+            let request = VNCoreMLRequest(model: model, completionHandler: { [weak self] request, error in
+                self?.processClassifications(for: request, error: error)
+            })
+
+            // Crop input images to square area at center, matching the way the ML model was trained.
+            request.imageCropAndScaleOption = .centerCrop
+
+            return request
+        } catch {
+            fatalError("Failed to load Vision ML model: \(error)")
+        }
+    }()
+    // The pixel buffer being held for analysis; used to serialize Vision requests.
+    private var currentBuffer: CVPixelBuffer?
+    private let labels = ["三色堇", "久留米杜鵑", "九重葛", "五爪金龍", "仙丹花", "四季秋海棠", "垂花懸鈴花", "大花咸豐草", "天竺葵", "射干", "平戶杜鵑", "木棉", "木茼蒿", "杜鵑花仙子", "烏來杜鵑", "玫瑰", "白晶菊", "皋月杜鵑", "矮牽牛", "石竹", "紫嬌花", "羊蹄甲", "美人蕉", "艾氏香茶菜", "萬壽菊", "著生杜鵑", "蔓花生", "蛇苺", "蛇莓", "蜀葵", "蟛蜞菊", "通泉草", "酢漿草", "野菊花", "金毛杜鵑", "金盞花", "金絲桃", "金雞菊", "金魚草", "銀葉菊", "鳳仙花", "黃秋英", "黃金菊", "龍船花"]
+
+
     // MARK: - View Controller Life Cycle
 
     override func viewDidLoad() {
@@ -53,6 +77,7 @@ final class ViewController: UIViewController {
         // Setup scene
         sceneView.delegate = self
         sceneView.session = session
+        session.delegate = self
         session.run(sessionConfig, options: [.resetTracking, .removeExistingAnchors])
         resetValues()
 
@@ -247,6 +272,74 @@ extension ViewController : ARSCNViewDelegate {
                 }
                 endValue = worldPos
                 updateResultLabel(startValue.distance(from: endValue))
+            }
+        }
+    }
+}
+
+// MARK: - ARSessionDelegate
+
+extension ViewController : ARSessionDelegate {
+
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        // Do not enqueue other buffers for processing while another Vision task is still running.
+        // The camera stream has only a finite amount of buffers available; holding too many buffers for analysis would starve the camera.
+        guard currentBuffer == nil, case .normal = frame.camera.trackingState else {
+            return
+        }
+
+        // Retain the image buffer for Vision processing.
+        self.currentBuffer = frame.capturedImage
+        classifyCurrentImage()
+    }
+
+    // Run the Vision+ML classifier on the current image buffer.
+    /// - Tag: ClassifyCurrentImage
+    private func classifyCurrentImage() {
+        let requestHandler = VNImageRequestHandler(cvPixelBuffer: currentBuffer!)
+        DispatchQueue(label: "com.nandalu.PlantsCam.serialVisionQueue").async {
+            do {
+                // Release the pixel buffer when done, allowing the next buffer to be processed.
+                defer { self.currentBuffer = nil }
+                try requestHandler.perform([self.classificationRequest])
+            } catch {
+                print("Error: Vision request failed with error \"\(error)\"")
+            }
+        }
+    }
+
+    // Handle completion of the Vision request and choose results to display.
+    /// - Tag: ProcessClassifications
+    private func processClassifications(for request: VNRequest, error: Error?) {
+        if measuring {
+            return
+        }
+        guard let results = request.results,
+            let classifications = results as? [VNCoreMLFeatureValueObservation] else {
+                print("Unable to classify image.\n\(error!.localizedDescription)")
+                return
+        }
+
+        // Show a label for the highest-confidence result (but only above a minimum confidence threshold).
+        if let bestResult = classifications.first(where: { result in result.confidence > 0.5 }),
+            // From: https://gist.github.com/otmb/7adf88882d2995ca63ad0ee5a0d3f91a
+            let featureArray = bestResult.featureValue.multiArrayValue {
+            let length = featureArray.count
+            let doublePtr = featureArray.dataPointer.bindMemory(to: Double.self, capacity: length)
+            let doubleBuffer = UnsafeBufferPointer(start: doublePtr, count: length)
+            let output = Array(doubleBuffer)
+            if let maxElement = output.max(),
+                let maxIndex = output.index(of: maxElement) {
+                if maxIndex < labels.count {
+                    let bestLabelElement = labels[maxIndex]
+                    DispatchQueue.main.async {
+                        self.resultLabel.text = String(format: "%@ (%.2f)", bestLabelElement, maxElement)
+                    }
+                }
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.resultLabel.text = ""
             }
         }
     }

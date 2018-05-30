@@ -24,9 +24,7 @@ final class ViewController: UIViewController {
     private let session = ARSession()
     private let vectorZero = SCNVector3()
     private let sessionConfig = ARWorldTrackingConfiguration()
-    private var measuring = false
-    private var startValue = SCNVector3()
-    private var endValue = SCNVector3()
+    private var isMeasuring = false
 
     private var lengthInPixel : Float? = nil
     private var lengthInCentiMeter : Float? = nil
@@ -111,7 +109,7 @@ final class ViewController: UIViewController {
 
     @objc private func takePhoto() {
         if recordTimer == nil {
-            recordTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true, block: { [weak self] (timer) in
+            recordTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [weak self] (timer) in
                 guard let weakSelf = self,
                     let imgData = UIImageJPEGRepresentation(weakSelf.sceneView.snapshot(), 1),
                     let lengthInPixel = weakSelf.lengthInPixel,
@@ -216,24 +214,24 @@ extension ViewController {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         resetValues()
-        measuring = true
+        isMeasuring = true
+        aimLabel.backgroundColor = UIColor.red.withAlphaComponent(0.3)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        measuring = false
+        isMeasuring = false
+        aimLabel.backgroundColor = UIColor.clear
     }
 
     private func resetValues() {
-        measuring = false
-        startValue = SCNVector3()
-        endValue =  SCNVector3()
-        updateResultLabel(0.0)
+        isMeasuring = false
+        resultLabel.text = ""
     }
 
-    private func updateResultLabel(_ value: Float) {
-        let cm = value * 100.0
-        let inch = cm * 0.3937007874
-        resultLabel.text = String(format: "%.2f cm / %.2f\"", cm, inch)
+    private func updateResultLabel() {
+        if let cm = lengthInCentiMeter, let px = lengthInPixel {
+            resultLabel.text = String(format: "%.1f cm / %.0f px", cm, px)
+        }
     }
 }
 
@@ -249,8 +247,8 @@ extension ViewController : ARSCNViewDelegate {
 
     private func detectObjects() {
         // Calculating pixel
-        let startFrameValue = view.center
-        let endFrameValue = CGPoint(x: view.center.x + 100, y: view.center.y)
+        let startFrameValue = CGPoint(x: view.center.x - 50, y: view.center.y)
+        let endFrameValue = CGPoint(x: view.center.x + 50, y: view.center.y)
         let deltaX = Float(endFrameValue.x - startFrameValue.x)
         let deltaY = Float(endFrameValue.y - startFrameValue.y)
         let lengthInPoint = sqrtf(deltaX * deltaX + deltaY * deltaY)          // in point
@@ -259,19 +257,16 @@ extension ViewController : ARSCNViewDelegate {
         // Calculating length
         if let startWorldVector = sceneView.realWorldVector(screenPos: startFrameValue),
             let endWorldVector = sceneView.realWorldVector(screenPos: endFrameValue) {
+            // Show aimLabel
+            aimLabel.isHidden = false
+            notReadyLabel.isHidden = true
+            // Prepare scale
             let lengthInMeter = startWorldVector.distance(from: endWorldVector)
             self.lengthInPixel = lengthInPixel
             self.lengthInCentiMeter = lengthInMeter * 100
-        }
-        if let worldPos = sceneView.realWorldVector(screenPos: view.center) {
-            aimLabel.isHidden = false
-            notReadyLabel.isHidden = true
-            if measuring {
-                if startValue == vectorZero {
-                    startValue = worldPos
-                }
-                endValue = worldPos
-                updateResultLabel(startValue.distance(from: endValue))
+            // Show scale if isMeasuring
+            if isMeasuring {
+                updateResultLabel()
             }
         }
     }
@@ -311,7 +306,7 @@ extension ViewController : ARSessionDelegate {
     // Handle completion of the Vision request and choose results to display.
     /// - Tag: ProcessClassifications
     private func processClassifications(for request: VNRequest, error: Error?) {
-        if measuring {
+        if isMeasuring {
             return
         }
         guard let results = request.results,

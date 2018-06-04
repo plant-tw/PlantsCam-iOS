@@ -93,6 +93,11 @@ final class ViewController: UIViewController {
 
         // Device motion manager
         motionManager.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
+
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(applicationDidBecomeActive(notification:)),
+            name: NSNotification.Name.UIApplicationDidBecomeActive,
+            object: nil)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -103,6 +108,10 @@ final class ViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         session.pause()
+    }
+
+    @objc func applicationDidBecomeActive(notification: NSNotification) {
+        resultLabel.text = ""
     }
 
     // MARK: - Button action

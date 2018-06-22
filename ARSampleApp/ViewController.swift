@@ -13,6 +13,7 @@ import Vision
 
 import MobileCoreServices
 import CoreMotion
+import CoreLocation
 
 final class ViewController: UIViewController {
 
@@ -30,6 +31,7 @@ final class ViewController: UIViewController {
     private var lengthInCentiMeter : Float? = nil
 
     private let motionManager = CMMotionManager()
+    private let locationManager = CLLocationManager()
 
     private let cameraButton = UIButton(type: .custom)
     private var photos : [Data] = [Data]()
@@ -98,6 +100,17 @@ final class ViewController: UIViewController {
             selector: #selector(applicationDidBecomeActive(notification:)),
             name: NSNotification.Name.UIApplicationDidBecomeActive,
             object: nil)
+
+        // Location permission
+        switch CLLocationManager.authorizationStatus() {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .denied, .restricted:
+            let alert = UIAlertController.ptw_alert(with: "Without location information, prediction might be inaccurate, and data collecting will be disabled (You can change settings later).")
+            present(alert, animated: true, completion: nil)
+        default:
+            break
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -132,11 +145,28 @@ final class ViewController: UIViewController {
                         self?.present(alert, animated: true, completion: nil)
                         return
                 }
+                guard let userLocation = weakSelf.locationManager.location else {
+                    let alert = UIAlertController(title: "Location is disabled", message: "We need location information to collect better data.", preferredStyle: .alert)
+                    let changeSetting = UIAlertAction(title: "Change settings", style: .default, handler: { (action) in
+                        guard let url = URL(string: UIApplicationOpenSettingsURLString) else { return }
+                        UIApplication.shared.open(url, completionHandler: nil)
+                    })
+                    let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+                    alert.addAction(changeSetting)
+                    alert.addAction(cancel)
+                    weakSelf.present(alert, animated: true, completion: nil)
+                    // Stop the timer
+                    weakSelf.recordTimer?.invalidate()
+                    weakSelf.recordTimer = nil
+                    return
+                }
                 let exifUserComment = ExifUserComment(lengthInPixel: lengthInPixel,
                                                       lengthInCentiMeter: lengthInCentiMeter,
                                                       roll: roll,
                                                       pitch: pitch,
-                                                      yaw: yaw)
+                                                      yaw: yaw,
+                                                      latitude: userLocation.coordinate.latitude,
+                                                      longitude: userLocation.coordinate.longitude)
                 weakSelf.exifs.append(exifUserComment)
                 weakSelf.photos.append(imgData)
             })
@@ -184,8 +214,15 @@ final class ViewController: UIViewController {
                     let jsonString = String(data: jsonData, encoding: .utf8) {
                     exifUserCommentString = jsonString
                 }
-                let exif = [kCGImagePropertyExifUserComment: exifUserCommentString]
-                let metadata = [kCGImagePropertyExifDictionary: exif as CFDictionary]
+                let latitudeRef = exifs[index].latitude < 0.0 ? "S" : "N"
+                let longitudeRef = exifs[index].longitude < 0.0 ? "W" : "E"
+                let gpsDict = [kCGImagePropertyGPSLatitude: abs(exifs[index].latitude),
+                               kCGImagePropertyGPSLatitudeRef: latitudeRef,
+                               kCGImagePropertyGPSLongitude: abs(exifs[index].longitude),
+                               kCGImagePropertyGPSLongitudeRef: longitudeRef] as CFDictionary
+                let exif = [kCGImagePropertyExifUserComment: exifUserCommentString] as CFDictionary
+                let metadata = [kCGImagePropertyExifDictionary: exif,
+                                kCGImagePropertyGPSDictionary: gpsDict]
 
                 // Save images as files in the directory
                 let fileURLString = directoryURLString + "/" + "\(directoryName)_\(index).jpg"

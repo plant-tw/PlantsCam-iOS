@@ -14,4 +14,7 @@ struct ExifUserComment : Codable {
     let roll : Double
     let pitch : Double
     let yaw : Double
+
+    let latitude : Double
+    let longitude : Double
 }

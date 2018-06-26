@@ -66,8 +66,24 @@ final class ViewController: UIViewController {
     }()
     // The pixel buffer being held for analysis; used to serialize Vision requests.
     private var currentBuffer: CVPixelBuffer?
-    private let labels = ["三色堇", "久留米杜鵑", "九重葛", "五爪金龍", "仙丹花", "四季秋海棠", "垂花懸鈴花", "大花咸豐草", "天竺葵", "射干", "平戶杜鵑", "木棉", "木茼蒿", "杜鵑花仙子", "烏來杜鵑", "玫瑰", "白晶菊", "皋月杜鵑", "矮牽牛", "石竹", "紫嬌花", "羊蹄甲", "美人蕉", "艾氏香茶菜", "萬壽菊", "著生杜鵑", "蔓花生", "蛇苺", "蛇莓", "蜀葵", "蟛蜞菊", "通泉草", "酢漿草", "野菊花", "金毛杜鵑", "金盞花", "金絲桃", "金雞菊", "金魚草", "銀葉菊", "鳳仙花", "黃秋英", "黃金菊", "龍船花"]
-
+    private lazy var labels : [String] = {
+        guard let path = Bundle.main.path(forResource: "labels", ofType: "txt"),
+            let content = try? String(contentsOfFile: path, encoding: .utf8) else {
+                DispatchQueue.main.async {
+                    self.resultLabel.text = "Parsing labels.txt error"
+                }
+                return [String]()
+        }
+        let lines = content.components(separatedBy: "\n")
+        var array = [String]()
+        for line in lines {
+            let element = line.components(separatedBy: ":")
+            if let value = element.last {
+                array.append(value)
+            }
+        }
+        return array
+    }()
 
     // MARK: - View Controller Life Cycle
 

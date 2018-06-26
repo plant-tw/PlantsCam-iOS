@@ -34,5 +34,6 @@ xcuserdata/
 
 ### Core ML
 *.mlmodel
+labels.txt
 
 # End of https://www.gitignore.io/api/xcode

@@ -19,15 +19,15 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>6</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Use the camera for Augmented Reality.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>For saving photos</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Improve prediction accuracy and data collecting.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>For saving photos</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

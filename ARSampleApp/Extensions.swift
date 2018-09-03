@@ -40,10 +40,12 @@ extension ARSCNView {
 
 extension UIAlertController {
 
-    static func ptw_alert(with msg: String) -> UIAlertController {
+    static func ptw_presentAlert(with msg: String) {
         let alertController = UIAlertController(title: nil, message: msg, preferredStyle: .alert)
         let confirmAction = UIAlertAction(title: "OK", style: .default, handler: nil)
         alertController.addAction(confirmAction)
-        return alertController
+        if let delegate = UIApplication.shared.delegate as? AppDelegate, let rootVc = delegate.window?.rootViewController {
+            rootVc.present(alertController, animated: true, completion: nil)
+        }
     }
 }

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0466C8AA213CCB0000E70833 /* CameraViewFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466C8A9213CCB0000E70833 /* CameraViewFactory.swift */; };
 		0466C8AC213D076D00E70833 /* AIVision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466C8AB213D076D00E70833 /* AIVision.swift */; };
+		0466C8B0213D0FCA00E70833 /* CameraButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466C8AF213D0FCA00E70833 /* CameraButton.swift */; };
 		047B59411F862A5F005597CC /* ExifUserComment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047B59401F862A5F005597CC /* ExifUserComment.swift */; };
 		04C3453D20DCA5BB0068F405 /* Plant.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 04C3453C20DCA5BB0068F405 /* Plant.mlmodel */; };
 		04C3456120DDD6CD0068F405 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 04C3456020DDD6CD0068F405 /* Settings.bundle */; };
@@ -23,6 +24,7 @@
 /* Begin PBXFileReference section */
 		0466C8A9213CCB0000E70833 /* CameraViewFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewFactory.swift; sourceTree = "<group>"; };
 		0466C8AB213D076D00E70833 /* AIVision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIVision.swift; sourceTree = "<group>"; };
+		0466C8AF213D0FCA00E70833 /* CameraButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraButton.swift; sourceTree = "<group>"; };
 		047B59401F862A5F005597CC /* ExifUserComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExifUserComment.swift; sourceTree = "<group>"; };
 		04C3453C20DCA5BB0068F405 /* Plant.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Plant.mlmodel; sourceTree = "<group>"; };
 		04C3456020DDD6CD0068F405 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				E5D125D31F17672200F95BA0 /* AppDelegate.swift */,
 				E5D125D71F17672200F95BA0 /* ViewController.swift */,
 				0466C8A9213CCB0000E70833 /* CameraViewFactory.swift */,
+				0466C8AF213D0FCA00E70833 /* CameraButton.swift */,
 				0466C8AB213D076D00E70833 /* AIVision.swift */,
 				047B59401F862A5F005597CC /* ExifUserComment.swift */,
 				E5D125E71F17676B00F95BA0 /* Extensions.swift */,
@@ -156,6 +159,7 @@
 			files = (
 				E5D125D81F17672200F95BA0 /* ViewController.swift in Sources */,
 				0466C8AA213CCB0000E70833 /* CameraViewFactory.swift in Sources */,
+				0466C8B0213D0FCA00E70833 /* CameraButton.swift in Sources */,
 				04C3453D20DCA5BB0068F405 /* Plant.mlmodel in Sources */,
 				047B59411F862A5F005597CC /* ExifUserComment.swift in Sources */,
 				E5D125E81F17676B00F95BA0 /* Extensions.swift in Sources */,

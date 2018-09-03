@@ -20,7 +20,7 @@ final class CameraViewFactory : NSObject {
             }
         }
     }
-    private(set) var arSession : ARSession? = nil
+    private var arSession : ARSession? = nil
     private lazy var sceneView : ARSCNView = {
         return ARSCNView()
     }()

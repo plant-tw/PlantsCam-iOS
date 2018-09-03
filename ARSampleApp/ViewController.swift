@@ -71,15 +71,10 @@ final class ViewController: UIViewController {
             name: NSNotification.Name.UIApplicationDidBecomeActive,
             object: nil)
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         UIApplication.shared.isIdleTimerDisabled = true
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        cameraViewFactory.arSession?.pause()
     }
 
     @objc func applicationDidBecomeActive(notification: NSNotification) {

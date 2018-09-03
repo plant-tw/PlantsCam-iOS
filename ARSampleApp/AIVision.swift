@@ -60,9 +60,9 @@ final class AIVision {
         }
         return array
     }()
-    private var inference : ((String) -> Void)? = nil
+    private var inference : ((String, Double) -> Void)? = nil
 
-    init(inference: @escaping (String) -> Void) {
+    init(inference: @escaping (String, Double) -> Void) {
         self.inference = inference
     }
 
@@ -105,8 +105,7 @@ final class AIVision {
             let maxIndex = output.index(of: maxConfidence) {
             if maxIndex < labels.count && maxConfidence > 0.7 {
                 let bestLabelElement = labels[maxIndex]
-                let result = String(format: "%@ (%.2f)", bestLabelElement, maxConfidence)
-                self.inference?(result)
+                self.inference?(bestLabelElement, maxConfidence)
                 return
             }
         }

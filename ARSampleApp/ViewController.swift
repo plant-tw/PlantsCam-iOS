@@ -13,25 +13,39 @@
 
 import UIKit
 import SceneKit
+import WebKit
 
 final class ViewController: UIViewController {
 
     private let cameraViewFactory = CameraViewFactory()
     private var sceneView: SCNView!
+    private var cameraButton : CameraButton? = nil
 
     private var lengthInPixel : Float? = nil
     private var lengthInCentiMeter : Float? = nil
 
     private lazy var aiVision : AIVision = {
-        let ai = AIVision(inference: { (inference) in
+        let ai = AIVision(inference: { (inference, confidence) in
             DispatchQueue.main.async {
                 if !self.cameraViewFactory.shouldShowScale {
-                    self.title = inference
+                    self.title = String(format: "%@ (%.2f)", inference, confidence)
+                    if !self.isViewing {
+                        self.webView.evaluateJavaScript("doc.show(\"\(inference)\");", completionHandler: nil)
+                    }
+
                 }
             }
         })
         return ai
     }()
+
+    private var bottomSheetViewController : BottomSheetViewController? = nil
+    lazy var webView : WKWebView = {
+        let height = 9 / 10 * view.bounds.height
+        let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 0, height: height))
+        return webView
+    }()
+    private var isViewing = false
 
     // MARK: - View Controller Life Cycle
 
@@ -51,6 +65,7 @@ final class ViewController: UIViewController {
                 self.title = String(format: "%.1f cm / %.0f px", lengthInCentiMeter, lengthInPixel)
             }
         })
+        cameraView.frame = UIScreen.main.bounds
         sceneView = cameraView
         view = cameraView
     }
@@ -59,33 +74,62 @@ final class ViewController: UIViewController {
         super.viewDidLoad()
 
         resetValues()
-
-        // Camera button
-        let cameraButton = CameraButton(currentData: { () -> (snapshot: UIImage, lengthInPixel: Float?, lengthInCentiMeter: Float?) in
-            return (self.sceneView.snapshot(), self.lengthInPixel, self.lengthInCentiMeter)
-        })
-        cameraButton.translatesAutoresizingMaskIntoConstraints = false
-        self.view.addSubview(cameraButton)
-        NSLayoutConstraint.activate([
-            cameraButton.bottomAnchor.constraint(equalTo: self.sceneView.bottomAnchor, constant: -10.0),
-            cameraButton.centerXAnchor.constraint(equalTo: self.sceneView.centerXAnchor),
-            cameraButton.widthAnchor.constraint(equalToConstant: 160.0),
-            cameraButton.heightAnchor.constraint(equalToConstant: 160.0)
-            ])
+        prepareViewMode()
 
         NotificationCenter.default.addObserver(self,
             selector: #selector(applicationDidBecomeActive(notification:)),
             name: NSNotification.Name.UIApplicationDidBecomeActive,
             object: nil)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
         UIApplication.shared.isIdleTimerDisabled = true
     }
 
     @objc func applicationDidBecomeActive(notification: NSNotification) {
         self.title = ""
+        prepareViewMode()
+    }
+
+    private func prepareViewMode() {
+        // From Settings.bundle
+        let isCameraMode = UserDefaults.standard.bool(forKey: "cameraMode")
+        if isCameraMode {
+            if cameraButton == nil {
+                let cameraButton = CameraButton(currentData: { () -> (snapshot: UIImage, lengthInPixel: Float?, lengthInCentiMeter: Float?) in
+                    return (self.sceneView.snapshot(), self.lengthInPixel, self.lengthInCentiMeter)
+                })
+                cameraButton.translatesAutoresizingMaskIntoConstraints = false
+                self.view.addSubview(cameraButton)
+                NSLayoutConstraint.activate([
+                    cameraButton.bottomAnchor.constraint(equalTo: self.sceneView.bottomAnchor, constant: -10.0),
+                    cameraButton.centerXAnchor.constraint(equalTo: self.sceneView.centerXAnchor),
+                    cameraButton.widthAnchor.constraint(equalToConstant: 160.0),
+                    cameraButton.heightAnchor.constraint(equalToConstant: 160.0)
+                    ])
+                self.cameraButton = cameraButton
+            }
+            navigationController?.setNavigationBarHidden(false, animated: true)
+            cameraButton?.isHidden = false
+            bottomSheetViewController?.view.removeFromSuperview()
+            bottomSheetViewController?.removeFromParentViewController()
+        } else {
+            if bottomSheetViewController == nil {
+                let bottomSheetViewController = BottomSheetViewController(type: .plain)
+                if let url = URL(string: "https://plant-tw.github.io/PlantsData/") {
+                    let urlRequest = URLRequest(url: url)
+                    webView.load(urlRequest)
+                    bottomSheetViewController.tableView.tableHeaderView = webView
+                    bottomSheetViewController.bottomSheetDelegate = self
+                    bottomSheetViewController.heights = (1 / 5, 9 / 10, 9 / 10)
+                }
+                self.bottomSheetViewController = bottomSheetViewController
+            }
+            navigationController?.setNavigationBarHidden(true, animated: true)
+            cameraButton?.isHidden = true
+            if let bottomSheetViewController = bottomSheetViewController {
+                addChildViewController(bottomSheetViewController)
+                bottomSheetViewController.show(in: view, initial: .collapsed)
+                bottomSheetViewController.didMove(toParentViewController: self)
+            }
+        }
     }
 }
 
@@ -94,6 +138,10 @@ final class ViewController: UIViewController {
 extension ViewController {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let isCameraMode = UserDefaults.standard.bool(forKey: "cameraMode")
+        if !isCameraMode {
+            return
+        }
         resetValues()
         cameraViewFactory.shouldShowScale = true
     }
@@ -105,5 +153,17 @@ extension ViewController {
     private func resetValues() {
         cameraViewFactory.shouldShowScale = false
         title = ""
+    }
+}
+
+// MARK: - BottomSheetViewDelegate
+
+extension ViewController : BottomSheetViewDelegate {
+
+    func didMove(to percentage: Float) {
+        if percentage == 1.0 {
+            webView.evaluateJavaScript("doc.loadImages();", completionHandler: nil)
+        }
+        isViewing = (percentage > 0.5)
     }
 }

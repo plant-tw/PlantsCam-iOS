@@ -7,19 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0466C8AA213CCB0000E70833 /* CameraViewFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0466C8A9213CCB0000E70833 /* CameraViewFactory.swift */; };
 		047B59411F862A5F005597CC /* ExifUserComment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047B59401F862A5F005597CC /* ExifUserComment.swift */; };
 		04C3453D20DCA5BB0068F405 /* Plant.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 04C3453C20DCA5BB0068F405 /* Plant.mlmodel */; };
 		04C3456120DDD6CD0068F405 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 04C3456020DDD6CD0068F405 /* Settings.bundle */; };
 		04F2A9EF20E1C3710047B1E3 /* labels.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04F2A9EE20E1C3710047B1E3 /* labels.txt */; };
 		E5D125D41F17672200F95BA0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D125D31F17672200F95BA0 /* AppDelegate.swift */; };
 		E5D125D81F17672200F95BA0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D125D71F17672200F95BA0 /* ViewController.swift */; };
-		E5D125DB1F17672200F95BA0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5D125D91F17672200F95BA0 /* Main.storyboard */; };
 		E5D125DD1F17672200F95BA0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E5D125DC1F17672200F95BA0 /* Assets.xcassets */; };
 		E5D125E01F17672200F95BA0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5D125DE1F17672200F95BA0 /* LaunchScreen.storyboard */; };
 		E5D125E81F17676B00F95BA0 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D125E71F17676B00F95BA0 /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0466C8A9213CCB0000E70833 /* CameraViewFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewFactory.swift; sourceTree = "<group>"; };
 		047B59401F862A5F005597CC /* ExifUserComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExifUserComment.swift; sourceTree = "<group>"; };
 		04C3453C20DCA5BB0068F405 /* Plant.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Plant.mlmodel; sourceTree = "<group>"; };
 		04C3456020DDD6CD0068F405 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -27,7 +28,6 @@
 		E5D125D01F17672200F95BA0 /* ARSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5D125D31F17672200F95BA0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E5D125D71F17672200F95BA0 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		E5D125DA1F17672200F95BA0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		E5D125DC1F17672200F95BA0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E5D125DF1F17672200F95BA0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E5D125E11F17672200F95BA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -66,11 +66,11 @@
 			children = (
 				E5D125D31F17672200F95BA0 /* AppDelegate.swift */,
 				E5D125D71F17672200F95BA0 /* ViewController.swift */,
+				0466C8A9213CCB0000E70833 /* CameraViewFactory.swift */,
 				047B59401F862A5F005597CC /* ExifUserComment.swift */,
 				E5D125E71F17676B00F95BA0 /* Extensions.swift */,
 				04C3453C20DCA5BB0068F405 /* Plant.mlmodel */,
 				04F2A9EE20E1C3710047B1E3 /* labels.txt */,
-				E5D125D91F17672200F95BA0 /* Main.storyboard */,
 				E5D125DC1F17672200F95BA0 /* Assets.xcassets */,
 				E5D125DE1F17672200F95BA0 /* LaunchScreen.storyboard */,
 				E5D125E11F17672200F95BA0 /* Info.plist */,
@@ -107,7 +107,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 0900;
 				LastUpgradeCheck = 0930;
-				ORGANIZATIONNAME = "Droids On Roids";
+				ORGANIZATIONNAME = Nandalu;
 				TargetAttributes = {
 					E5D125CF1F17672200F95BA0 = {
 						CreatedOnToolsVersion = 9.0;
@@ -141,7 +141,6 @@
 				E5D125E01F17672200F95BA0 /* LaunchScreen.storyboard in Resources */,
 				04F2A9EF20E1C3710047B1E3 /* labels.txt in Resources */,
 				E5D125DD1F17672200F95BA0 /* Assets.xcassets in Resources */,
-				E5D125DB1F17672200F95BA0 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -153,6 +152,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E5D125D81F17672200F95BA0 /* ViewController.swift in Sources */,
+				0466C8AA213CCB0000E70833 /* CameraViewFactory.swift in Sources */,
 				04C3453D20DCA5BB0068F405 /* Plant.mlmodel in Sources */,
 				047B59411F862A5F005597CC /* ExifUserComment.swift in Sources */,
 				E5D125E81F17676B00F95BA0 /* Extensions.swift in Sources */,
@@ -163,14 +163,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		E5D125D91F17672200F95BA0 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				E5D125DA1F17672200F95BA0 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		E5D125DE1F17672200F95BA0 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

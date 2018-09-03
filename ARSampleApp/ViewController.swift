@@ -17,15 +17,8 @@ import CoreLocation
 
 final class ViewController: UIViewController {
 
-    @IBOutlet weak var resultLabel: UILabel!
-    @IBOutlet weak var aimLabel: UILabel!
-    @IBOutlet weak var notReadyLabel: UILabel!
-    @IBOutlet var sceneView: ARSCNView!
-    
-    private let session = ARSession()
-    private let vectorZero = SCNVector3()
-    private let sessionConfig = ARWorldTrackingConfiguration()
-    private var isMeasuring = false
+    private let cameraViewFactory = CameraViewFactory()
+    private var sceneView: SCNView!
 
     private var lengthInPixel : Float? = nil
     private var lengthInCentiMeter : Float? = nil
@@ -70,7 +63,7 @@ final class ViewController: UIViewController {
         guard let path = Bundle.main.path(forResource: "labels", ofType: "txt"),
             let content = try? String(contentsOfFile: path, encoding: .utf8) else {
                 DispatchQueue.main.async {
-                    self.resultLabel.text = "Parsing labels.txt error"
+                    self.title = "Parsing labels.txt error"
                 }
                 return [String]()
         }
@@ -87,14 +80,30 @@ final class ViewController: UIViewController {
 
     // MARK: - View Controller Life Cycle
 
+    override func loadView() {
+        // TODO: check ARWorldTrackingConfiguration.isSupported and provide fallback
+        let cameraView = cameraViewFactory.arView(didUpdateFrame: { (capturedPixelBuffer) in
+            // Do not enqueue other buffers for processing while another Vision task is still running.
+            // The camera stream has only a finite amount of buffers available; holding too many buffers for analysis would starve the camera.
+            guard self.currentBuffer == nil else {
+                return
+            }
+            self.currentBuffer = capturedPixelBuffer
+            self.classifyCurrentImage()
+        }, didUpdateScale: {(lengthInPixel, lengthInCentiMeter) in
+            self.lengthInPixel = lengthInPixel
+            self.lengthInCentiMeter = lengthInCentiMeter
+            if self.cameraViewFactory.shouldShowScale {
+                self.title = String(format: "%.1f cm / %.0f px", lengthInCentiMeter, lengthInPixel)
+            }
+        })
+        sceneView = cameraView
+        view = cameraView
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Setup scene
-        sceneView.delegate = self
-        sceneView.session = session
-        session.delegate = self
-        session.run(sessionConfig, options: [.resetTracking, .removeExistingAnchors])
+
         resetValues()
 
         // Camera button
@@ -136,11 +145,11 @@ final class ViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        session.pause()
+        cameraViewFactory.arSession?.pause()
     }
 
     @objc func applicationDidBecomeActive(notification: NSNotification) {
-        resultLabel.text = ""
+        self.title = ""
     }
 
     // MARK: - Button action
@@ -276,85 +285,20 @@ extension ViewController {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         resetValues()
-        isMeasuring = true
-        aimLabel.backgroundColor = UIColor.red.withAlphaComponent(0.3)
+        cameraViewFactory.shouldShowScale = true
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        isMeasuring = false
-        aimLabel.backgroundColor = UIColor.clear
+        cameraViewFactory.shouldShowScale = false
     }
 
     private func resetValues() {
-        isMeasuring = false
-        resultLabel.text = ""
-    }
-
-    private func updateResultLabel() {
-        if let cm = lengthInCentiMeter, let px = lengthInPixel {
-            resultLabel.text = String(format: "%.1f cm / %.0f px", cm, px)
-        }
+        cameraViewFactory.shouldShowScale = false
+        title = ""
     }
 }
 
-// MARK: - ARSCNViewDelegate
-
-extension ViewController : ARSCNViewDelegate {
-
-    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        DispatchQueue.main.async {
-            self.detectObjects()
-        }
-    }
-
-    private func detectObjects() {
-        // Calculating pixel
-        let startFrameValue = CGPoint(x: view.center.x - 50, y: view.center.y)
-        let endFrameValue = CGPoint(x: view.center.x + 50, y: view.center.y)
-        let deltaX = Float(endFrameValue.x - startFrameValue.x)
-        let deltaY = Float(endFrameValue.y - startFrameValue.y)
-        let lengthInPoint = sqrtf(deltaX * deltaX + deltaY * deltaY)          // in point
-        let lengthInPixel = lengthInPoint * Float(UIScreen.main.scale)        // in pixel
-
-        // Calculating length
-        if let startWorldVector = sceneView.realWorldVector(screenPos: startFrameValue),
-            let endWorldVector = sceneView.realWorldVector(screenPos: endFrameValue) {
-            // Show aimLabel
-            aimLabel.isHidden = false
-            notReadyLabel.isHidden = true
-            // Prepare scale
-            let lengthInMeter = startWorldVector.distance(from: endWorldVector)
-            self.lengthInPixel = lengthInPixel
-            self.lengthInCentiMeter = lengthInMeter * 100
-            // Show scale if isMeasuring
-            if isMeasuring {
-                updateResultLabel()
-            }
-        }
-    }
-}
-
-// MARK: - ARSessionDelegate
-
-extension ViewController : ARSessionDelegate {
-
-    func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        // Do not enqueue other buffers for processing while another Vision task is still running.
-        // The camera stream has only a finite amount of buffers available; holding too many buffers for analysis would starve the camera.
-        guard currentBuffer == nil else {
-            return
-        }
-        // Uncomment code below when we're doing inference with AR information
-        /*
-        guard case .normal = frame.camera.trackingState else {
-            return
-        }
-         */
-
-        // Retain the image buffer for Vision processing.
-        self.currentBuffer = frame.capturedImage
-        classifyCurrentImage()
-    }
+extension ViewController {
 
     // Run the Vision+ML classifier on the current image buffer.
     /// - Tag: ClassifyCurrentImage
@@ -374,7 +318,7 @@ extension ViewController : ARSessionDelegate {
     // Handle completion of the Vision request and choose results to display.
     /// - Tag: ProcessClassifications
     private func processClassifications(for request: VNRequest, error: Error?) {
-        if isMeasuring {
+        if cameraViewFactory.shouldShowScale {
             return
         }
         guard let results = request.results,
@@ -396,13 +340,13 @@ extension ViewController : ARSessionDelegate {
                 if maxIndex < labels.count {
                     let bestLabelElement = labels[maxIndex]
                     DispatchQueue.main.async {
-                        self.resultLabel.text = String(format: "%@ (%.2f)", bestLabelElement, maxElement)
+                        self.title = String(format: "%@ (%.2f)", bestLabelElement, maxElement)
                     }
                 }
             }
         } else {
             DispatchQueue.main.async {
-                self.resultLabel.text = ""
+                self.title = ""
             }
         }
     }

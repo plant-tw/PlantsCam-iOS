@@ -1,7 +1,14 @@
 # PlantsCam-iOS
 
+## Prepare 1: Dependency
 
-## ML Inference
+Clone this project, and then run:
+```
+git submodule init
+git submodule update
+```
+
+## Prepare 2: ML Inference
 
 Train model by yourself, or download our model (`labels.txt` and `Plant.mlmodel` from [here](https://drive.google.com/open?id=1ALrku-CWORa7vuyH65FqMhxrZX4lD6WK)). Put them in the `ARSampleApp` folder.
 

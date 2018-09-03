@@ -60,10 +60,10 @@ final class AIVision {
         }
         return array
     }()
-    private var inferences : ((String) -> Void)? = nil
+    private var inference : ((String) -> Void)? = nil
 
-    init(inferences: @escaping (String) -> Void) {
-        self.inferences = inferences
+    init(inference: @escaping (String) -> Void) {
+        self.inference = inference
     }
 
     // Run the Vision+ML classifier on the current image buffer.
@@ -89,28 +89,25 @@ final class AIVision {
                 print("Unable to classify image.\n\(error!.localizedDescription)")
                 return
         }
-
         // Show a label for the highest-confidence result (but only above a minimum confidence threshold).
-        if let bestResult = classifications.first(where: { result in result.confidence > 0.5 }),
+        guard let bestResult = classifications.first(where: { result in result.confidence > 0.5 }),
             // From: https://gist.github.com/otmb/7adf88882d2995ca63ad0ee5a0d3f91a
-            let featureArray = bestResult.featureValue.multiArrayValue {
-            let length = featureArray.count
-            let doublePtr = featureArray.dataPointer.bindMemory(to: Double.self, capacity: length)
-            let doubleBuffer = UnsafeBufferPointer(start: doublePtr, count: length)
-            let output = Array(doubleBuffer)
-            if let maxElement = output.max(),
-                let maxIndex = output.index(of: maxElement) {
-                if maxIndex < labels.count {
-                    let bestLabelElement = labels[maxIndex]
-                    DispatchQueue.main.async {
-                        let result = String(format: "%@ (%.2f)", bestLabelElement, maxElement)
-                        self.inferences?(result)
-                    }
-                }
-            }
-        } else {
-            DispatchQueue.main.async {
-                self.inferences?("")
+            let featureArray = bestResult.featureValue.multiArrayValue else {
+                print("bestResult or featureArray not available")
+                return
+        }
+        let length = featureArray.count
+        let doublePtr = featureArray.dataPointer.bindMemory(to: Double.self, capacity: length)
+        let doubleBuffer = UnsafeBufferPointer(start: doublePtr, count: length)
+        let output = Array(doubleBuffer)
+        // Notice: We use confidence from multiarray, not `result.confidence` above
+        if let maxConfidence = output.max(),
+            let maxIndex = output.index(of: maxConfidence) {
+            if maxIndex < labels.count && maxConfidence > 0.7 {
+                let bestLabelElement = labels[maxIndex]
+                let result = String(format: "%@ (%.2f)", bestLabelElement, maxConfidence)
+                self.inference?(result)
+                return
             }
         }
     }

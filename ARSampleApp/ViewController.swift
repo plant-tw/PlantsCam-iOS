@@ -23,9 +23,11 @@ final class ViewController: UIViewController {
     private var lengthInCentiMeter : Float? = nil
 
     private lazy var aiVision : AIVision = {
-        let ai = AIVision(inferences: { (inference) in
-            if !self.cameraViewFactory.shouldShowScale {
-                self.title = inference
+        let ai = AIVision(inference: { (inference) in
+            DispatchQueue.main.async {
+                if !self.cameraViewFactory.shouldShowScale {
+                    self.title = inference
+                }
             }
         })
         return ai

@@ -23,6 +23,15 @@ final class ViewController: UIViewController {
     private var lengthInPixel : Float? = nil
     private var lengthInCentiMeter : Float? = nil
 
+    private lazy var aiVision : AIVision = {
+        let ai = AIVision(inferences: { (inference) in
+            if !self.cameraViewFactory.shouldShowScale {
+                self.title = inference
+            }
+        })
+        return ai
+    }()
+
     private let motionManager = CMMotionManager()
     private let locationManager = CLLocationManager()
 
@@ -39,45 +48,6 @@ final class ViewController: UIViewController {
         }
     }
 
-    // Vision classification request and model
-    /// - Tag: ClassificationRequest
-    private lazy var classificationRequest: VNCoreMLRequest = {
-        do {
-            // Instantiate the model from its generated Swift class.
-            let model = try VNCoreMLModel(for: Plant().model)
-            let request = VNCoreMLRequest(model: model, completionHandler: { [weak self] request, error in
-                self?.processClassifications(for: request, error: error)
-            })
-
-            // Crop input images to square area at center, matching the way the ML model was trained.
-            request.imageCropAndScaleOption = .centerCrop
-
-            return request
-        } catch {
-            fatalError("Failed to load Vision ML model: \(error)")
-        }
-    }()
-    // The pixel buffer being held for analysis; used to serialize Vision requests.
-    private var currentBuffer: CVPixelBuffer?
-    private lazy var labels : [String] = {
-        guard let path = Bundle.main.path(forResource: "labels", ofType: "txt"),
-            let content = try? String(contentsOfFile: path, encoding: .utf8) else {
-                DispatchQueue.main.async {
-                    self.title = "Parsing labels.txt error"
-                }
-                return [String]()
-        }
-        let lines = content.components(separatedBy: "\n")
-        var array = [String]()
-        for line in lines {
-            let element = line.components(separatedBy: ":")
-            if let value = element.last {
-                array.append(value)
-            }
-        }
-        return array
-    }()
-
     // MARK: - View Controller Life Cycle
 
     override func loadView() {
@@ -85,11 +55,10 @@ final class ViewController: UIViewController {
         let cameraView = cameraViewFactory.arView(didUpdateFrame: { (capturedPixelBuffer) in
             // Do not enqueue other buffers for processing while another Vision task is still running.
             // The camera stream has only a finite amount of buffers available; holding too many buffers for analysis would starve the camera.
-            guard self.currentBuffer == nil else {
+            guard self.aiVision.currentBuffer == nil else {
                 return
             }
-            self.currentBuffer = capturedPixelBuffer
-            self.classifyCurrentImage()
+            self.aiVision.currentBuffer = capturedPixelBuffer
         }, didUpdateScale: {(lengthInPixel, lengthInCentiMeter) in
             self.lengthInPixel = lengthInPixel
             self.lengthInCentiMeter = lengthInCentiMeter
@@ -295,59 +264,5 @@ extension ViewController {
     private func resetValues() {
         cameraViewFactory.shouldShowScale = false
         title = ""
-    }
-}
-
-extension ViewController {
-
-    // Run the Vision+ML classifier on the current image buffer.
-    /// - Tag: ClassifyCurrentImage
-    private func classifyCurrentImage() {
-        let requestHandler = VNImageRequestHandler(cvPixelBuffer: currentBuffer!)
-        DispatchQueue(label: "com.nandalu.PlantsCam.serialVisionQueue").async {
-            do {
-                // Release the pixel buffer when done, allowing the next buffer to be processed.
-                defer { self.currentBuffer = nil }
-                try requestHandler.perform([self.classificationRequest])
-            } catch {
-                print("Error: Vision request failed with error \"\(error)\"")
-            }
-        }
-    }
-
-    // Handle completion of the Vision request and choose results to display.
-    /// - Tag: ProcessClassifications
-    private func processClassifications(for request: VNRequest, error: Error?) {
-        if cameraViewFactory.shouldShowScale {
-            return
-        }
-        guard let results = request.results,
-            let classifications = results as? [VNCoreMLFeatureValueObservation] else {
-                print("Unable to classify image.\n\(error!.localizedDescription)")
-                return
-        }
-
-        // Show a label for the highest-confidence result (but only above a minimum confidence threshold).
-        if let bestResult = classifications.first(where: { result in result.confidence > 0.5 }),
-            // From: https://gist.github.com/otmb/7adf88882d2995ca63ad0ee5a0d3f91a
-            let featureArray = bestResult.featureValue.multiArrayValue {
-            let length = featureArray.count
-            let doublePtr = featureArray.dataPointer.bindMemory(to: Double.self, capacity: length)
-            let doubleBuffer = UnsafeBufferPointer(start: doublePtr, count: length)
-            let output = Array(doubleBuffer)
-            if let maxElement = output.max(),
-                let maxIndex = output.index(of: maxElement) {
-                if maxIndex < labels.count {
-                    let bestLabelElement = labels[maxIndex]
-                    DispatchQueue.main.async {
-                        self.title = String(format: "%@ (%.2f)", bestLabelElement, maxElement)
-                    }
-                }
-            }
-        } else {
-            DispatchQueue.main.async {
-                self.title = ""
-            }
-        }
     }
 }

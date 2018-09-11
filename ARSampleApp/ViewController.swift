@@ -99,10 +99,8 @@ final class ViewController: UIViewController {
                 cameraButton.translatesAutoresizingMaskIntoConstraints = false
                 self.view.addSubview(cameraButton)
                 NSLayoutConstraint.activate([
-                    cameraButton.bottomAnchor.constraint(equalTo: self.sceneView.bottomAnchor, constant: -10.0),
-                    cameraButton.centerXAnchor.constraint(equalTo: self.sceneView.centerXAnchor),
-                    cameraButton.widthAnchor.constraint(equalToConstant: 160.0),
-                    cameraButton.heightAnchor.constraint(equalToConstant: 160.0)
+                    cameraButton.bottomAnchor.constraint(equalTo: self.sceneView.safeAreaLayoutGuide.bottomAnchor, constant: -20.0),
+                    cameraButton.centerXAnchor.constraint(equalTo: self.sceneView.centerXAnchor)
                     ])
                 self.cameraButton = cameraButton
             }
@@ -113,6 +111,9 @@ final class ViewController: UIViewController {
         } else {
             if bottomSheetViewController == nil {
                 let bottomSheetViewController = BottomSheetViewController(type: .plain)
+                // TODO: offline mode
+                // Use NWPathMonitor on iOS 12 instead of Reachability
+                // See: WWDC 2018 Session 715
                 if let url = URL(string: "https://plant-tw.github.io/PlantsData/") {
                     let urlRequest = URLRequest(url: url)
                     webView.load(urlRequest)

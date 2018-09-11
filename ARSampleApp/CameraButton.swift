@@ -23,12 +23,51 @@ final class CameraButton : UIButton {
     private var recordTimer : Timer? = nil {
         willSet {
             if newValue == nil {
-                alpha = 1.0
+                isSelected = false
+                countLabel.isHidden = true
             } else {
-                alpha = 0.3
+                isSelected = true
+                countLabel.isHidden = false
             }
         }
     }
+    private var count : UInt = 0 {
+        didSet {
+            countLabel.text = "\(count)"
+        }
+    }
+    private let countLabel = UILabel()
+    private let normalImage : UIImage? = {
+        let rect = CGRect(origin: CGPoint.zero, size: CGSize(width: 120.0, height: 120.0))
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, UIScreen.main.scale)
+        let whitePath = UIBezierPath(ovalIn: rect.insetBy(dx: 20.0, dy: 20.0))
+        UIColor.white.setFill()
+        whitePath.fill()
+        let blackPath = UIBezierPath(ovalIn: rect.insetBy(dx: 28.0, dy: 28.0))
+        UIColor.black.setFill()
+        blackPath.fill()
+        let redPath = UIBezierPath(ovalIn: rect.insetBy(dx: 30.0, dy: 30.0))
+        UIColor.red.setFill()
+        redPath.fill()
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        return image
+    }()
+    private let selectedImage : UIImage? = {
+        let rect = CGRect(origin: CGPoint.zero, size: CGSize(width: 120.0, height: 120.0))
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, UIScreen.main.scale)
+        let whitePath = UIBezierPath(ovalIn: rect.insetBy(dx: 20.0, dy: 20.0))
+        UIColor.white.setFill()
+        whitePath.fill()
+        let blackPath = UIBezierPath(ovalIn: rect.insetBy(dx: 28.0, dy: 28.0))
+        UIColor.black.setFill()
+        blackPath.fill()
+        let redPath = UIBezierPath(roundedRect: rect.insetBy(dx: 40.0, dy: 40.0), cornerRadius: 5.0)
+        UIColor.red.setFill()
+        redPath.fill()
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        return image
+    }()
+
     private let motionManager = CMMotionManager()
     private let locationManager = CLLocationManager()
     private var currentData: (() -> (snapshot: UIImage, lengthInPixel: Float?, lengthInCentiMeter: Float?))? = nil
@@ -37,7 +76,17 @@ final class CameraButton : UIButton {
         self.currentData = currentData
         super.init(frame: .zero)
 
-        setImage(UIImage(named: "circle-160"), for: .normal)
+        setImage(normalImage, for: .normal)
+        setImage(selectedImage, for: .selected)
+
+        countLabel.textColor = .white
+        countLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(countLabel)
+        NSLayoutConstraint.activate([
+            countLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            countLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+            ])
+
         addTarget(self, action: #selector(tap), for: .touchUpInside)
 
         // Device motion manager
@@ -69,6 +118,7 @@ final class CameraButton : UIButton {
     }
 
     private func startTakingPhotos() {
+        count = 0
         recordTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(takePhoto), userInfo: nil, repeats: true)
     }
 
@@ -118,6 +168,7 @@ final class CameraButton : UIButton {
                                               longitude: userLocation.coordinate.longitude)
         exifs.append(exifUserComment)
         photos.append(imgData)
+        count += 1
     }
 
     private func stopTakingPhotos() {
@@ -171,8 +222,8 @@ final class CameraButton : UIButton {
             let metadata = [kCGImagePropertyExifDictionary: exif,
                             kCGImagePropertyGPSDictionary: gpsDict]
 
-            // Save images as files in the directory
-            let fileURLString = directoryURLString + "/" + "\(directoryName)_\(index).jpg"
+            // Save images as files in the directory (filename suffix starts at 1)
+            let fileURLString = directoryURLString + "/" + "\(directoryName)_\(index + 1).jpg"
             let pathURL = URL(fileURLWithPath: fileURLString)
             guard let destination = CGImageDestinationCreateWithURL(pathURL as CFURL, kUTTypeJPEG, 1, nil),
                 let source = CGImageSourceCreateWithData(imgData as CFData, nil) else {

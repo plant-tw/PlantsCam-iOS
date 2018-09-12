@@ -14,6 +14,7 @@
 import UIKit
 import SceneKit
 import WebKit
+import AVKit    // for torchModeAuto
 
 final class ViewController: UIViewController {
 
@@ -129,6 +130,28 @@ final class ViewController: UIViewController {
                 addChildViewController(bottomSheetViewController)
                 bottomSheetViewController.show(in: view, initial: .collapsed)
                 bottomSheetViewController.didMove(toParentViewController: self)
+            }
+        }
+        // From Settings.bundle
+        let isTorchModeAuto = UserDefaults.standard.bool(forKey: "torchModeAuto")
+        if let device = AVCaptureDevice.default(for: .video) {
+            if device.hasTorch {
+                do {
+                    try device.lockForConfiguration()
+                    // TODO: It's possible to continuously update torch mode. See: https://stackoverflow.com/a/28298472/3796488
+                    if isTorchModeAuto {
+                        if device.isTorchModeSupported(.auto) {
+                            device.torchMode = .auto
+                        }
+                    } else {
+                        if device.isTorchModeSupported(.off) {
+                            device.torchMode = .off
+                        }
+                    }
+                    device.unlockForConfiguration()
+                } catch {
+                    print("Torch could not be used")
+                }
             }
         }
     }

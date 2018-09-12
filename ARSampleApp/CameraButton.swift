@@ -97,7 +97,7 @@ final class CameraButton : UIButton {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
         case .denied, .restricted:
-            UIAlertController.ptw_presentAlert(with: "Without location information, prediction might be inaccurate, and data collecting will be disabled (You can change settings later).")
+            UIAlertController.ptw_presentAlert(with: NSLocalizedString("warning_of_location_denied", comment: ""))
         default:
             break
         }
@@ -129,7 +129,7 @@ final class CameraButton : UIButton {
             // Stop the timer
             recordTimer?.invalidate()
             recordTimer = nil
-            UIAlertController.ptw_presentAlert(with: "AR sensor not ready")
+            UIAlertController.ptw_presentAlert(with: NSLocalizedString("AR sensor not ready", comment: ""))
             return
         }
         guard let imgData = UIImageJPEGRepresentation(snapshot, 1),
@@ -139,16 +139,19 @@ final class CameraButton : UIButton {
                 // Stop the timer
                 recordTimer?.invalidate()
                 recordTimer = nil
-                UIAlertController.ptw_presentAlert(with: "motion sensor not ready")
+                UIAlertController.ptw_presentAlert(with: NSLocalizedString("motion sensor not ready", comment: ""))
                 return
         }
         guard let userLocation = locationManager.location else {
-            let alert = UIAlertController(title: "Location is disabled", message: "We need location information to collect better data.", preferredStyle: .alert)
-            let changeSetting = UIAlertAction(title: "Change settings", style: .default, handler: { (action) in
+            let alert = UIAlertController(title: NSLocalizedString("Location is disabled", comment: ""),
+                                          message: NSLocalizedString("We need location information to collect better data.", comment: ""),
+                                          preferredStyle: .alert)
+            let changeSetting = UIAlertAction(title: NSLocalizedString("Change settings", comment: ""),
+                                              style: .default, handler: { (action) in
                 guard let url = URL(string: UIApplicationOpenSettingsURLString) else { return }
                 UIApplication.shared.open(url, completionHandler: nil)
             })
-            let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+            let cancel = UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: nil)
             alert.addAction(changeSetting)
             alert.addAction(cancel)
             if let delegate = UIApplication.shared.delegate as? AppDelegate, let rootVc = delegate.window?.rootViewController {

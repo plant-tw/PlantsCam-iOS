@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>台灣植物相機</string>
+	<string>FlowerAtlas</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,11 +23,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Use the camera for Augmented Reality.</string>
+	<string>Identify flower in front of camera</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Improve prediction accuracy and data collecting.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>For saving photos</string>
+	<string>Improve prediction accuracy and data collection</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

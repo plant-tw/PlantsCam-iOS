@@ -132,7 +132,7 @@ final class CameraButton : UIButton {
             UIAlertController.ptw_presentAlert(with: NSLocalizedString("AR sensor not ready", comment: ""))
             return
         }
-        guard let imgData = UIImageJPEGRepresentation(snapshot, 1),
+        guard let imgData = snapshot.jpegData(compressionQuality: 1),
             let roll = motionManager.deviceMotion?.attitude.roll,
             let pitch = motionManager.deviceMotion?.attitude.pitch,
             let yaw = motionManager.deviceMotion?.attitude.yaw else {
@@ -148,7 +148,7 @@ final class CameraButton : UIButton {
                                           preferredStyle: .alert)
             let changeSetting = UIAlertAction(title: NSLocalizedString("Change settings", comment: ""),
                                               style: .default, handler: { (action) in
-                guard let url = URL(string: UIApplicationOpenSettingsURLString) else { return }
+                guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
                 UIApplication.shared.open(url, completionHandler: nil)
             })
             let cancel = UIAlertAction(title: NSLocalizedString("Cancel", comment: ""), style: .cancel, handler: nil)

@@ -79,7 +79,7 @@ final class ViewController: UIViewController {
 
         NotificationCenter.default.addObserver(self,
             selector: #selector(applicationDidBecomeActive(notification:)),
-            name: NSNotification.Name.UIApplicationDidBecomeActive,
+            name: UIApplication.didBecomeActiveNotification,
             object: nil)
         UIApplication.shared.isIdleTimerDisabled = true
     }
@@ -108,7 +108,7 @@ final class ViewController: UIViewController {
             navigationController?.setNavigationBarHidden(false, animated: true)
             cameraButton?.isHidden = false
             bottomSheetViewController?.view.removeFromSuperview()
-            bottomSheetViewController?.removeFromParentViewController()
+            bottomSheetViewController?.removeFromParent()
         } else {
             if bottomSheetViewController == nil {
                 let bottomSheetViewController = BottomSheetViewController(type: .plain)
@@ -145,9 +145,9 @@ final class ViewController: UIViewController {
             navigationController?.setNavigationBarHidden(true, animated: true)
             cameraButton?.isHidden = true
             if let bottomSheetViewController = bottomSheetViewController {
-                addChildViewController(bottomSheetViewController)
+                addChild(bottomSheetViewController)
                 bottomSheetViewController.show(in: view, initial: .collapsed)
-                bottomSheetViewController.didMove(toParentViewController: self)
+                bottomSheetViewController.didMove(toParent: self)
             }
         }
         // From Settings.bundle

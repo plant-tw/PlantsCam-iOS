@@ -21,7 +21,7 @@ final class CameraViewFactory : NSObject {
             if shouldShowScale {
                 scaleLabel?.backgroundColor = UIColor.red.withAlphaComponent(0.3)
                 sceneView.showsStatistics = true
-                sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+                sceneView.debugOptions = [SCNDebugOptions.showFeaturePoints]
             } else {
                 scaleLabel?.backgroundColor = .clear
                 sceneView.showsStatistics = false

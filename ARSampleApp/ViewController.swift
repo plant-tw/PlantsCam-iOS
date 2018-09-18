@@ -15,6 +15,7 @@ import UIKit
 import SceneKit
 import WebKit
 import AVKit    // for torchModeAuto
+import Network  // for NWPathMonitor
 
 final class ViewController: UIViewController {
 
@@ -33,7 +34,6 @@ final class ViewController: UIViewController {
                     if !self.isViewing {
                         self.webView.evaluateJavaScript("doc.show(\"\(inference)\");", completionHandler: nil)
                     }
-
                 }
             }
         })
@@ -112,15 +112,33 @@ final class ViewController: UIViewController {
         } else {
             if bottomSheetViewController == nil {
                 let bottomSheetViewController = BottomSheetViewController(type: .plain)
-                // TODO: offline mode
+                bottomSheetViewController.tableView.tableHeaderView = webView
+                bottomSheetViewController.bottomSheetDelegate = self
+                bottomSheetViewController.heights = (1 / 5, 9 / 10, 9 / 10)
                 // Use NWPathMonitor on iOS 12 instead of Reachability
                 // See: WWDC 2018 Session 715
-                if let url = URL(string: "https://plant-tw.github.io/PlantsData/") {
+                if #available(iOS 12.0, *) {
+                    NetworkMonitor.shared.startNotifier()
+                }
+                let loadWebContent = {
+                    guard let url = URL(string: "https://plant-tw.github.io/PlantsData/") else { return }
                     let urlRequest = URLRequest(url: url)
-                    webView.load(urlRequest)
-                    bottomSheetViewController.tableView.tableHeaderView = webView
-                    bottomSheetViewController.bottomSheetDelegate = self
-                    bottomSheetViewController.heights = (1 / 5, 9 / 10, 9 / 10)
+                    self.webView.load(urlRequest)
+                    // TODO: offline mode
+                }
+                if #available(iOS 12.0, *) {
+                    NetworkMonitor.shared.connectionDidChanged = { (isConnected: Bool) -> Void in
+                        // This is called at app launch, too
+                        if isConnected {
+                            DispatchQueue.main.async {
+                                loadWebContent()
+                            }
+                            NetworkMonitor.shared.stopNotifier()
+                        }
+                    }
+                } else {
+                    // "Avoid checking reachability before starting a connection"
+                    loadWebContent()    // load content anyway
                 }
                 self.bottomSheetViewController = bottomSheetViewController
             }
@@ -189,5 +207,42 @@ extension ViewController : BottomSheetViewDelegate {
             webView.evaluateJavaScript("doc.loadImages();", completionHandler: nil)
         }
         isViewing = (percentage > 0.5)
+    }
+}
+
+// MARK: -
+
+@available(iOS 12.0, *)
+struct NetworkMonitor {
+
+    static var shared = NetworkMonitor()
+    private init() {}
+
+    private let monitor = NWPathMonitor()
+
+    var currentPath : NWPath {
+        return monitor.currentPath
+    }
+
+    var connectionDidChanged : ((Bool) -> Void)? = nil
+
+    func startNotifier() {
+        monitor.pathUpdateHandler = {(path: NWPath) -> Void in
+            var isConnected = false
+            for interface in path.availableInterfaces {
+                switch interface.type {
+                case .cellular, .wifi, .wiredEthernet:
+                    isConnected = true
+                default:
+                    break
+                }
+            }
+            NetworkMonitor.shared.connectionDidChanged?(isConnected)
+        }
+        monitor.start(queue: DispatchQueue.global(qos: .userInteractive))
+    }
+
+    func stopNotifier() {
+        monitor.cancel()
     }
 }

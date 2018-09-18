@@ -15,7 +15,7 @@ import UIKit
 import SceneKit
 import WebKit
 import AVKit    // for torchModeAuto
-import Network  // for NWPathMonitor
+//import Network  // for NWPathMonitor
 
 final class ViewController: UIViewController {
 
@@ -117,15 +117,19 @@ final class ViewController: UIViewController {
                 bottomSheetViewController.heights = (1 / 5, 9 / 10, 9 / 10)
                 // Use NWPathMonitor on iOS 12 instead of Reachability
                 // See: WWDC 2018 Session 715
+                /*
                 if #available(iOS 12.0, *) {
                     NetworkMonitor.shared.startNotifier()
                 }
+                 */
                 let loadWebContent = {
                     guard let url = URL(string: "https://plant-tw.github.io/PlantsData/") else { return }
                     let urlRequest = URLRequest(url: url)
                     self.webView.load(urlRequest)
                     // TODO: offline mode
                 }
+                loadWebContent()
+                /*
                 if #available(iOS 12.0, *) {
                     NetworkMonitor.shared.connectionDidChanged = { (isConnected: Bool) -> Void in
                         // This is called at app launch, too
@@ -140,6 +144,7 @@ final class ViewController: UIViewController {
                     // "Avoid checking reachability before starting a connection"
                     loadWebContent()    // load content anyway
                 }
+                 */
                 self.bottomSheetViewController = bottomSheetViewController
             }
             navigationController?.setNavigationBarHidden(true, animated: true)
@@ -211,7 +216,7 @@ extension ViewController : BottomSheetViewDelegate {
 }
 
 // MARK: -
-
+/*
 @available(iOS 12.0, *)
 struct NetworkMonitor {
 
@@ -246,3 +251,4 @@ struct NetworkMonitor {
         monitor.cancel()
     }
 }
+*/

@@ -150,9 +150,11 @@ final class ViewController: UIViewController {
             navigationController?.setNavigationBarHidden(true, animated: true)
             cameraButton?.isHidden = true
             if let bottomSheetViewController = bottomSheetViewController {
-                addChild(bottomSheetViewController)
-                bottomSheetViewController.show(in: view, initial: .collapsed)
-                bottomSheetViewController.didMove(toParent: self)
+                if bottomSheetViewController.parent == nil {
+                    addChild(bottomSheetViewController)
+                    bottomSheetViewController.show(in: view, initial: .collapsed)
+                    bottomSheetViewController.didMove(toParent: self)
+                }
             }
         }
         // From Settings.bundle

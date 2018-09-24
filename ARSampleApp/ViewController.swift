@@ -14,6 +14,7 @@
 import UIKit
 import SceneKit
 import WebKit
+import SafariServices
 import AVKit    // for torchModeAuto
 //import Network  // for NWPathMonitor
 
@@ -41,9 +42,11 @@ final class ViewController: UIViewController {
     }()
 
     private var bottomSheetViewController : BottomSheetViewController? = nil
-    lazy var webView : WKWebView = {
+    private let plantsDataURL = URL(string: "https://plant-tw.github.io/PlantsData/")!
+    private lazy var webView : WKWebView = {
         let height = 9 / 10 * view.bounds.height
         let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 0, height: height))
+        webView.navigationDelegate = self
         return webView
     }()
     private var isViewing = false
@@ -123,8 +126,7 @@ final class ViewController: UIViewController {
                 }
                  */
                 let loadWebContent = {
-                    guard let url = URL(string: "https://plant-tw.github.io/PlantsData/") else { return }
-                    let urlRequest = URLRequest(url: url)
+                    let urlRequest = URLRequest(url: self.plantsDataURL)
                     self.webView.load(urlRequest)
                     // TODO: offline mode
                 }
@@ -214,6 +216,25 @@ extension ViewController : BottomSheetViewDelegate {
             webView.evaluateJavaScript("doc.loadImages();", completionHandler: nil)
         }
         isViewing = (percentage > 0.5)
+    }
+}
+
+// MARK: - WKNavigationDelegate
+
+extension ViewController : WKNavigationDelegate {
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let url = navigationAction.request.url, let host = url.host, let plantsDataHost = plantsDataURL.host else {
+            decisionHandler(.allow)
+            return
+        }
+        if host == plantsDataHost {
+            decisionHandler(.allow)
+            return
+        }
+        decisionHandler(.cancel)
+        let safari = SFSafariViewController(url: url)
+        present(safari, animated: true, completion: nil)
     }
 }
 

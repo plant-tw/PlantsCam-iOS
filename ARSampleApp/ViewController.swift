@@ -16,7 +16,7 @@ import SceneKit
 import WebKit
 import SafariServices
 import AVKit    // for torchModeAuto
-//import Network  // for NWPathMonitor
+import Network  // for NWPathMonitor
 
 final class ViewController: UIViewController {
 
@@ -47,6 +47,11 @@ final class ViewController: UIViewController {
         let height = 9 / 10 * view.bounds.height
         let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 0, height: height))
         webView.navigationDelegate = self
+        webView.loadHTMLString("""
+            <body>
+                <h1 style='text-align: center'>\(NSLocalizedString("Loading...", comment: ""))</h1>
+            </body>
+            """, baseURL: nil)
         return webView
     }()
     private var isViewing = false
@@ -120,18 +125,13 @@ final class ViewController: UIViewController {
                 bottomSheetViewController.heights = (1 / 5, 9 / 10, 9 / 10)
                 // Use NWPathMonitor on iOS 12 instead of Reachability
                 // See: WWDC 2018 Session 715
-                /*
                 if #available(iOS 12.0, *) {
                     NetworkMonitor.shared.startNotifier()
                 }
-                 */
                 let loadWebContent = {
                     let urlRequest = URLRequest(url: self.plantsDataURL)
                     self.webView.load(urlRequest)
-                    // TODO: offline mode
                 }
-                loadWebContent()
-                /*
                 if #available(iOS 12.0, *) {
                     NetworkMonitor.shared.connectionDidChanged = { (isConnected: Bool) -> Void in
                         // This is called at app launch, too
@@ -140,13 +140,39 @@ final class ViewController: UIViewController {
                                 loadWebContent()
                             }
                             NetworkMonitor.shared.stopNotifier()
+                        } else {
+                            // Offline mode
+                            DispatchQueue.main.async {
+                                self.webView.loadHTMLString("""
+                                    <head>
+                                        <style>
+                                            body {
+                                                text-align: center;
+                                            }
+                                        </style>
+                                        <script>
+                                            var doc = (function () {
+                                                var show = function (key) {
+                                                    document.getElementsByClassName("name")[0].textContent = key;
+                                                };
+                                                return {
+                                                    show: show
+                                                };
+                                            }());
+                                        </script>
+                                    </head>
+                                    <body>
+                                        <h1 class="name">&nbsp;</h1>
+                                        <h2>（\(NSLocalizedString("Offline mode", comment: ""))）</h2>
+                                    </body>
+                                """, baseURL: nil)
+                            }
                         }
                     }
                 } else {
                     // "Avoid checking reachability before starting a connection"
                     loadWebContent()    // load content anyway
                 }
-                 */
                 self.bottomSheetViewController = bottomSheetViewController
             }
             navigationController?.setNavigationBarHidden(true, animated: true)
@@ -239,7 +265,7 @@ extension ViewController : WKNavigationDelegate {
 }
 
 // MARK: -
-/*
+
 @available(iOS 12.0, *)
 struct NetworkMonitor {
 
@@ -274,4 +300,3 @@ struct NetworkMonitor {
         monitor.cancel()
     }
 }
-*/

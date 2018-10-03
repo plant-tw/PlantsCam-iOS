@@ -21,3 +21,6 @@
 "OK" = "OK";
 "Cancel" = "取消";
 "Change settings" = "更改設定";
+
+"Loading..." = "讀取中...";
+"Offline mode" = "離線模式";

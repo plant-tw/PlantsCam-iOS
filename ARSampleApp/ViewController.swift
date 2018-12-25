@@ -242,7 +242,7 @@ extension ViewController : BottomSheetViewDelegate {
         if percentage == 1.0 {
             webView.evaluateJavaScript("doc.loadImages();", completionHandler: nil)
         }
-        isViewing = (percentage > 0.5)
+        isViewing = (percentage > 0)
     }
 }
 

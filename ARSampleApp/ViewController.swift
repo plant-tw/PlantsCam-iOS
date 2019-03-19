@@ -124,6 +124,8 @@ final class ViewController: UIViewController {
                 bottomSheetViewController.tableView.tableHeaderView = webView
                 bottomSheetViewController.bottomSheetDelegate = self
                 bottomSheetViewController.heights = (1 / 5, 9 / 10, 9 / 10)
+                bottomSheetViewController.rootViewController.view.layer.cornerRadius = 10
+                bottomSheetViewController.rootViewController.view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
                 // Use NWPathMonitor on iOS 12 instead of Reachability
                 // See: WWDC 2018 Session 715
                 if #available(iOS 12.0, *) {

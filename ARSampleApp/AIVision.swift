@@ -102,7 +102,7 @@ final class AIVision {
         let output = Array(doubleBuffer)
         // Notice: We use confidence from multiarray, not `result.confidence` above
         if let maxConfidence = output.max(),
-            let maxIndex = output.index(of: maxConfidence) {
+            let maxIndex = output.firstIndex(of: maxConfidence) {
             if maxIndex < labels.count && maxConfidence > 0.7 {
                 let bestLabelElement = labels[maxIndex]
                 self.inference?(bestLabelElement, maxConfidence)

@@ -42,17 +42,11 @@ final class ViewController: UIViewController {
     }()
 
     private var bottomSheetViewController : BottomSheetViewController? = nil
-    private let plantsDataURL = URL(string: "https://plant-tw.github.io/PlantsData/")!
+    private let plantsDataURL = URL(string: "https://plant-tw.github.io/PlantsData/?type=swcp")!
     private lazy var webView : WKWebView = {
         // TODO: resizing tableHeaderView (temporary fix with fixed height)
-        let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 0, height: 900))
+        let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 0, height: 700))
         webView.navigationDelegate = self
-        // FIXME: This isn't working!??
-        webView.loadHTMLString("""
-            <body>
-                <h1 style='text-align: center'>\(NSLocalizedString("Loading...", comment: ""))</h1>
-            </body>
-            """, baseURL: nil)
         return webView
     }()
     private var isViewing = false

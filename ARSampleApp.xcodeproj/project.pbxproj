@@ -343,6 +343,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = 249RY7L79K;
 				INFOPLIST_FILE = ARSampleApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -358,6 +359,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = 249RY7L79K;
 				INFOPLIST_FILE = ARSampleApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
